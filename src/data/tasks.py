@@ -1,6 +1,6 @@
-from . import curs,conn, IntegrityError
+from . import (curs, conn, IntegrityError)
 from model.tasks import Task, TaskResponse
-from error import Duplicate, Missing, TaskConflictException
+from error import Duplicate, Missing
 
 curs.execute("""
                 CREATE TABLE IF NOT EXISTS tasks (
@@ -26,9 +26,11 @@ def create(task: Task):
     params = model_to_dict(task)
     try:
         curs.execute(qry, params)
-    except IntegrityError as e:
-        raise TaskConflictException()
+    except IntegrityError:
+        raise Duplicate(msg=
+            f"Explorer {task.name} already exists")
     return get_one(task.name)
+
 
 def get_one(name: str) -> Task:
     qry = "select * from tasks where name=:name"
@@ -38,27 +40,31 @@ def get_one(name: str) -> Task:
     if row:
         return row_to_model(row)
     else:
-        raise Missing(msg=f"Task {name} not found")
+        raise Missing(msg=f"Explorer {name} not found")
 
-def get_all():
+
+def get_all() -> list[Task]:
     qry = "select * from tasks"
     curs.execute(qry)
     rows = curs.fetchall()
-    if rows:
-        return [row_to_model(row) for row in rows] 
-    else:
-        raise Missing(msg=f"Task not found")
+    return [row_to_model(row) for row in rows]
+
 
 def delete(name: str):
     qry = "delete from tasks where name=:name"
     params = {"name": name}
     curs.execute(qry, params)
-    conn.commit()
+    if curs.rowcount != 1:
+        raise Missing(msg=f"Task {name} not found")
+    else:
+        row = curs.fetchone()
+        conn.commit() 
     return True
-    
+
+
 def update(task: Task):
     qry = """update tasks set status = :status where name = :name"""
     params = model_to_dict(task)
     curs.execute(qry, params)
-    conn.commit()
-    return True
+    if curs.rowcount != 1:
+        raise Missing(msg=f"Task {task.name} not found")

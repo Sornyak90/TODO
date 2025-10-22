@@ -10,12 +10,13 @@ def get_all():
     return service.get_all()
 
 
-def get_one(name:str) -> Task | None:
+def get_one(name: str) -> Task | None:
     return service.get_one(name)
 
 
 def update(task: Task):
     return service.update(task)
+
 
 def delete(name: str) -> bool | None:
     return service.delete(name)
