@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
 class Task(BaseModel):
-    id: int
     name: str
+    status: bool
     
+class TaskResponse(Task):
+    id: int

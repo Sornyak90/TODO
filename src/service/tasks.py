@@ -6,21 +6,16 @@ def create(task: Task) -> Task | None:
     return service.create(task)
 
 
-# def get_all() -> list(Task):
-#     return None
+def get_all():
+    return service.get_all()
 
 
-def get_one(id) -> Task | None:
-    return service.get_one(id)
+def get_one(name:str) -> Task | None:
+    return service.get_one(name)
 
 
-# def update(task: Task) -> Task:
-#     return task
+def update(task: Task):
+    return service.update(task)
 
-
-# def replace(task: Task) -> Task:
-#     return task
-
-
-# def delete(id) -> bool | None:
-#     return None
+def delete(name: str) -> bool | None:
+    return service.delete(name)
