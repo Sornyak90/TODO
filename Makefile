@@ -6,6 +6,6 @@ check: format
 
 lint: check
 	uv run pyright src/
-
+	
 run:
 	uv run python src/main.py
