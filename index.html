@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding: 20px;
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .task-item {
+            border-bottom: 1px solid #eee;
+            padding: 10px 0;
+        }
+        .task-item:last-child {
+            border-bottom: none;
+        }
+        .status-true {
+            color: #28a745;
+        }
+        .status-false {
+            color: #dc3545;
+        }
+        .btn-status {
+            width: 48%;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1 class="text-center mb-4">Task Manager</h1>
+    
+    <div class="row">
+        <!-- Левая часть - управление задачами -->
+        <div class="col-md-4">
+            <div class="section">
+                <h3>Управление задачами</h3>
+                
+                <!-- Создание задачи -->
+                <div class="mb-4">
+                    <h5>Создать задачу</h5>
+                    <div class="mb-2">
+                        <label for="createTaskName" class="form-label">Имя задачи</label>
+                        <input type="text" class="form-control" id="createTaskName" placeholder="Введите имя задачи">
+                    </div>
+                    <button class="btn btn-primary w-100" id="createTaskBtn">Создать задачу</button>
+                </div>
+                
+                <!-- Удаление задачи -->
+                <div class="mb-4">
+                    <h5>Удалить задачу</h5>
+                    <div class="mb-2">
+                        <label for="deleteTaskName" class="form-label">Имя задачи</label>
+                        <input type="text" class="form-control" id="deleteTaskName" placeholder="Введите имя задачи для удаления">
+                    </div>
+                    <button class="btn btn-danger w-100" id="deleteTaskBtn">Удалить задачу</button>
+                </div>
+                
+                <!-- Поиск задачи -->
+                <div class="mb-4">
+                    <h5>Поиск задачи</h5>
+                    <div class="mb-2">
+                        <label for="searchTaskName" class="form-label">Имя задачи</label>
+                        <input type="text" class="form-control" id="searchTaskName" placeholder="Введите имя задачи для поиска">
+                    </div>
+                    <button class="btn btn-info w-100" id="searchTaskBtn">Найти задачу</button>
+                </div>
+
+                <!-- Изменить статус задачи -->
+                <div class="mb-4">
+                    <h5>Изменить статус задачи</h5>
+                    <div class="mb-2">
+                        <label for="updateTaskName" class="form-label">Имя задачи</label>
+                        <input type="text" class="form-control" id="updateTaskName" placeholder="Введите имя задачи">
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button class="btn btn-success btn-status" id="setStatusTrueBtn">Выполнено</button>
+                        <button class="btn btn-secondary btn-status" id="setStatusFalseBtn">Не выполнено</button>
+                    </div>
+                </div>
+                
+                <!-- Результат поиска -->
+                <div id="searchResult" class="mt-3" style="display: none;">
+                    <h5>Результат поиска:</h5>
+                    <div id="searchResultContent" class="p-2 border rounded bg-light"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Правая часть - список всех задач -->
+        <div class="col-md-8">
+            <div class="section">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h3>Список задач</h3>
+                    <button class="btn btn-outline-secondary" id="refreshBtn">Обновить</button>
+                </div>
+                <div id="tasksList">
+                    <!-- Здесь будет отображаться список задач -->
+                    <div class="text-center text-muted">Загрузка задач...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Базовый URL API
+const API_BASE_URL = 'http://localhost:8000'; // Замените на ваш URL API
+
+// Функция для получения всех задач
+async function getAllTasks() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/`);
+        if (!response.ok) {
+            throw new Error('Ошибка при получении задач');
+        }
+        const tasks = await response.json();
+        displayTasks(tasks);
+    } catch (error) {
+        console.error('Ошибка:', error);
+        document.getElementById('tasksList').innerHTML =
+            '<div class="alert alert-danger">Ошибка при загрузке задач</div>';
+    }
+}
+
+// Функция для отображения задач
+function displayTasks(tasks) {
+    const tasksList = document.getElementById('tasksList');
+    
+    if (!tasks || tasks.length === 0) {
+        tasksList.innerHTML = '<div class="text-center text-muted">Задачи не найдены</div>';
+        return;
+    }
+    
+    let html = '';
+    tasks.forEach(task => {
+        html += `
+            <div class="task-item">
+                <div class="row">
+                    <div class="col-md-4">
+                        <strong>ID:</strong> ${task.id || 'N/A'}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Имя:</strong> ${task.name}
+                    </div>
+                    <div class="col-md-4">
+                        <strong>Статус:</strong> 
+                        <span class="${task.status ? 'status-true' : 'status-false'}">
+                            ${task.status ? 'Выполнено' : 'Не выполнено'}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    
+    tasksList.innerHTML = html;
+}
+
+// Функция для создания задачи
+async function createTask() {
+    const name = document.getElementById('createTaskName').value.trim();
+    const status = false;
+    
+    if (!name) {
+        showMessage('danger', 'Пожалуйста, введите имя задачи');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, status }),
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при создании задачи');
+        }
+        
+        document.getElementById('createTaskName').value = '';
+        getAllTasks();
+        showMessage('success', 'Задача успешно создана!');
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showMessage('danger', 'Ошибка при создании задачи');
+    }
+}
+
+// Функция для изменения статуса задачи на "Выполнено"
+async function setStatusTrue() {
+    const name = document.getElementById('updateTaskName').value.trim();
+    const status = true;
+    
+    if (!name) {
+        showMessage('warning', 'Пожалуйста, введите имя задачи');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, status }),
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при изменении статуса задачи');
+        }
+        
+        document.getElementById('updateTaskName').value = '';
+        getAllTasks();
+        showMessage('success', 'Статус задачи изменен на "Выполнено"!');
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showMessage('danger', 'Ошибка при изменении статуса задачи');
+    }
+}
+
+// Функция для изменения статуса задачи на "Не выполнено"
+async function setStatusFalse() {
+    const name = document.getElementById('updateTaskName').value.trim();
+    const status = false;
+    
+    if (!name) {
+        showMessage('warning', 'Пожалуйста, введите имя задачи');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ name, status }),
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при изменении статуса задачи');
+        }
+        
+        document.getElementById('updateTaskName').value = '';
+        getAllTasks();
+        showMessage('success', 'Статус задачи изменен на "Не выполнено"!');
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showMessage('danger', 'Ошибка при изменении статуса задачи');
+    }
+}
+
+// Функция для удаления задачи
+async function deleteTask() {
+    const name = document.getElementById('deleteTaskName').value.trim();
+    
+    if (!name) {
+        showMessage('warning', 'Пожалуйста, введите имя задачи для удаления');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/${name}`, {
+            method: 'DELETE',
+        });
+        
+        if (!response.ok) {
+            throw new Error('Ошибка при удалении задачи');
+        }
+
+        
+        result = await response.json();
+        
+        if (result) {
+            document.getElementById('deleteTaskName').value = '';
+            getAllTasks();
+            showMessage('success', 'Задача успешно удалена!');
+        } else {
+            showMessage('info', 'Задача не найдена');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showMessage('danger', 'Ошибка при удалении задачи');
+    }
+}
+
+// Функция для поиска задачи
+async function searchTask() {
+    const name = document.getElementById('searchTaskName').value.trim();
+    
+    if (!name) {
+        showMessage('warning', 'Пожалуйста, введите имя задачи для поиска');
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/tasks/${name}`);
+        if (!response.ok) {
+            throw new Error('Ошибка при поиске задачи');
+        }
+        
+        const task = await response.json();
+        const searchResult = document.getElementById('searchResult');
+        const searchResultContent = document.getElementById('searchResultContent');
+        
+        if (task) {
+            searchResultContent.innerHTML = `
+                <div><strong>ID:</strong> ${task.id || 'N/A'}</div>
+                <div><strong>Имя:</strong> ${task.name}</div>
+                <div><strong>Статус:</strong> 
+                    <span class="${task.status ? 'status-true' : 'status-false'}">
+                        ${task.status ? 'Выполнено' : 'Не выполнено'}
+                    </span>
+                </div>
+            `;
+        } else {
+            searchResultContent.innerHTML = '<div class="text-muted">Задача не найдена</div>';
+        }
+        
+        searchResult.style.display = 'block';
+    } catch (error) {
+        console.error('Ошибка:', error);
+        showMessage('danger', 'Ошибка при поиске задачи');
+    }
+}
+
+// Показываем всплывающее сообщение
+function showMessage(type, message) {
+    const toastContainer = document.createElement('div');
+    toastContainer.className = `toast-container position-fixed bottom-0 end-0 p-3`;
+    toastContainer.setAttribute('id', 'toastContainer');
+    
+    const toastDiv = document.createElement('div');
+    toastDiv.className = `toast fade hide ${type}`;
+    toastDiv.role = 'alert';
+    toastDiv.ariaLive = 'assertive';
+    toastDiv.ariaAtomic = 'true';
+    
+    const toastHeader = document.createElement('div');
+    toastHeader.className = 'toast-header';
+    toastHeader.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle-fill' : type === 'danger' ? 'exclamation-triangle-fill' : 'info-circle-fill'}"></i> <strong class="me-auto">${message}</strong><small></small><button type="button" class="btn-close ms-2 m-1" data-bs-dismiss="toast" aria-label="Close"></button>`;
+    
+    const toastBody = document.createElement('div');
+    toastBody.className = 'toast-body';
+    toastBody.textContent = ''; // Тут можем выводить дополнительный текст, если надо
+    
+    toastDiv.appendChild(toastHeader);
+    toastDiv.appendChild(toastBody);
+    toastContainer.appendChild(toastDiv);
+    document.body.appendChild(toastContainer);
+    
+    const toastBootstrap = new bootstrap.Toast(toastDiv);
+    toastBootstrap.show();
+    
+    setTimeout(() => {
+        toastBootstrap.hide();
+        document.body.removeChild(toastContainer);
+    }, 5000); // Автоматическое закрытие спустя 5 секунд
+}
+
+// Инициализация при загрузке страницы
+document.addEventListener('DOMContentLoaded', function () {
+    // Загружаем все задачи при загрузке страницы
+    getAllTasks();
+    
+    // Назначаем обработчики событий
+    document.getElementById('createTaskBtn').addEventListener('click', createTask);
+    document.getElementById('setStatusTrueBtn').addEventListener('click', setStatusTrue);
+    document.getElementById('setStatusFalseBtn').addEventListener('click', setStatusFalse);
+    document.getElementById('deleteTaskBtn').addEventListener('click', deleteTask);
+    document.getElementById('searchTaskBtn').addEventListener('click', searchTask);
+    document.getElementById('refreshBtn').addEventListener('click', getAllTasks);
+    
+    // Добавляем возможность создания задачи по нажатию Enter
+    document.getElementById('createTaskName').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            createTask();
+        }
+    });
+    
+    document.getElementById('updateTaskName').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            // При нажатии Enter в поле изменения статуса, устанавливаем статус "Выполнено"
+            setStatusTrue();
+        }
+    });
+    
+    document.getElementById('deleteTaskName').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            deleteTask();
+        }
+    });
+    
+    document.getElementById('searchTaskName').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            searchTask();
+        }
+    });
+});
+</script>
+</body>
+</html>
