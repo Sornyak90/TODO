@@ -8,7 +8,7 @@ router = APIRouter(prefix="/tasks")
 
 
 @router.post("/", status_code=201)
-def create(task: Task) -> Task:
+def create(task: Task) -> Task | None:
     try:
         return service.create(task)
     except Duplicate as e:
@@ -21,7 +21,7 @@ def get_all():
 
 
 @router.get("/{name}")
-def get_one(name: str) -> Task:
+def get_one(name: str) -> Task | None:
     try:
         return service.get_one(name)
     except Missing as e:

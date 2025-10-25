@@ -1,4 +1,4 @@
-from . import (curs, conn, IntegrityError)
+from . import curs, conn, IntegrityError
 from model.tasks import Task, TaskResponse
 from error import Duplicate, Missing
 
@@ -27,8 +27,7 @@ def create(task: Task):
     try:
         curs.execute(qry, params)
     except IntegrityError:
-        raise Duplicate(msg=
-            f"Explorer {task.name} already exists")
+        raise Duplicate(msg=f"Explorer {task.name} already exists")
     return get_one(task.name)
 
 
@@ -57,8 +56,8 @@ def delete(name: str):
     if curs.rowcount != 1:
         raise Missing(msg=f"Task {name} not found")
     else:
-        row = curs.fetchone()
-        conn.commit() 
+        curs.fetchone()
+        conn.commit()
     return True
 
 
