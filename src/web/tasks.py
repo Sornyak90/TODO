@@ -79,7 +79,7 @@ def update(task: Task) -> Task | None:
 
 
 @router.delete("/{name}", status_code=204)
-def delete(name: str) -> bool:
+def delete(name: str):
     """
     Удалить задачу по её имени.
     

@@ -6,5 +6,5 @@ class Task(BaseModel):
     status: bool
 
 # Полная схема задачи с уникальным идентификатором
-class TaskInDB(Task):
+class TaskResponse(Task):
     id: int

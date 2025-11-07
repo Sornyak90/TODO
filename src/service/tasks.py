@@ -48,7 +48,7 @@ def update(task: Task) -> Optional[Task]:
     return service.update(task)
 
 
-def delete(name: str) -> bool:
+def delete(name: str):
     """Удаляет задачу по указанному названию.
 
     Args:
