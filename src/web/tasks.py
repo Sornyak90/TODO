@@ -1,14 +1,20 @@
-from fastapi import APIRouter, HTTPException
-from model.tasks import Task
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from model.tasks import Task, TaskResponse
 import service.tasks as service
 from error import Duplicate, Missing
 
 
 router = APIRouter(prefix="/tasks")
+security = HTTPBasic()
+
+users_db = {
+    "admin": "admin"
+}
 
 
 @router.post("/", status_code=201)
-def create(task: Task) -> Task | None:
+def create(task: Task, credentials: HTTPBasicCredentials = Depends(security)) -> Task | None:
     """
     Создать новую задачу.
     
@@ -21,14 +27,23 @@ def create(task: Task) -> Task | None:
     Исключения:
     HTTPException: Если задача с таким именем уже существует (код статуса 409).
     """
-    try:
-        return service.create(task)
-    except Duplicate as e:
-        raise HTTPException(status_code=409, detail=e.msg)
+    username = credentials.username
+    password = credentials.password
+
+    user = users_db.get(username)
+    if not user or user != password:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неправильные логин или пароль!",
+            headers={"WWW-Authenticate": "Basic"}
+        )
+    
+    return service.create(task)
+    
 
 
 @router.get("/")
-def get_all() -> list[Task] | None:
+def get_all() -> list[TaskResponse] | None:
     """
     Получить список всех задач.
     

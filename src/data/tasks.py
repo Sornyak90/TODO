@@ -1,9 +1,11 @@
 from model.tasks import Task, TaskResponse
 from error import Duplicate, Missing
 from . import Session, User
+from sqlalchemy.exc import IntegrityError
+from fastapi import HTTPException
 
 
-def create(task: Task) -> Task | None:
+def create(task: Task) -> TaskResponse | None:
     # """
     # Добавляет новую задачу в базу данных.
     
@@ -16,12 +18,15 @@ def create(task: Task) -> Task | None:
     # Returns:
     #     Task | None: Новая созданная задача или None, если возникла ошибка.
     # """
-    with Session() as session:
-        task = User(name=task.name, status=task.status)
-        print(task.id)
-        session.add(task)
-        session.commit()
-    return None
+    try:
+        with Session() as session:
+            task = User(name=task.name, status=task.status)
+            session.add(task)
+            session.commit()
+            session.refresh(task)
+        return TaskResponse(id=task.id, name=task.name, status=task.status)
+    except IntegrityError as e:
+        raise HTTPException(status_code=409, detail=str(e))
 
 def get_one(name: str) -> Task | None:
     # """

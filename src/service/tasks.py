@@ -3,7 +3,7 @@ from model.tasks import Task
 import data.tasks as service
 
 
-def create(task: Task) -> Optional[Task]:
+def create(task: Task) -> Task | None:
     """Создает новую задачу и возвращает созданную задачу.
 
     Args:

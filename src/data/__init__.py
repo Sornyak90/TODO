@@ -18,7 +18,7 @@ Session = sessionmaker(bind=engine)
 class User(Base):
     __tablename__ = 'tasks'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String)
+    name = Column(String, unique=True)
     status = Column(Boolean)
 
 # Создание таблицы в базе данных
