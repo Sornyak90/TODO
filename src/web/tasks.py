@@ -1,20 +1,35 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from model.tasks import Task, TaskResponse
+from model.tasks import Task, TaskResponse, LoginRequest, LoginResponse
 import service.tasks as service
 from error import Duplicate, Missing
 
 
 router = APIRouter(prefix="/tasks")
-security = HTTPBasic()
 
-users_db = {
-    "admin": "admin"
-}
-
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    summary="Login with username and password",
+    description="Get a JWT access token",
+    responses={
+        200: {"description": "Successful login"},
+        401: {
+            "model": ErrorMessage,
+            "description": "Invalid credentials"
+        }
+    }
+)
+def login(login_request: LoginRequest):
+    if not validate_credentials(login_request.username, login_request.password):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password" 
+        )
+    
 
 @router.post("/", status_code=201)
-def create(task: Task, credentials: HTTPBasicCredentials = Depends(security)) -> Task | None:
+def create(task: Task) -> Task | None:
     """
     Создать новую задачу.
     
@@ -26,18 +41,7 @@ def create(task: Task, credentials: HTTPBasicCredentials = Depends(security)) ->
     
     Исключения:
     HTTPException: Если задача с таким именем уже существует (код статуса 409).
-    """
-    username = credentials.username
-    password = credentials.password
-
-    user = users_db.get(username)
-    if not user or user != password:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неправильные логин или пароль!",
-            headers={"WWW-Authenticate": "Basic"}
-        )
-    
+    """    
     return service.create(task)
     
 
