@@ -1,5 +1,5 @@
 from typing import List, Optional
-from model.tasks import Task
+from model.tasks import Task, UserFullModel
 import data.tasks as service
 
 
@@ -58,3 +58,11 @@ def delete(name: str):
         bool: True, если задача была успешно удалена, иначе False.
     """
     return service.delete(name)
+
+def validate_credentials(username: str, password: str) -> UserFullModel | None:
+    for user in users.values():
+        if user.username == username and sha256_crypt.verify(
+            password, user.password_hash
+        ):
+            return user
+    return None
