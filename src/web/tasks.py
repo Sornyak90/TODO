@@ -1,40 +1,17 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from model.tasks import Task, TaskResponse, LoginRequest, LoginResponse, ErrorMessage
+from model.tasks import Task, TaskResponse
 import service.tasks as service
 from error import Duplicate, Missing
-
+from auth.model import LoginRequest
 
 router = APIRouter(prefix="/tasks")
 
-@router.post(
-    "/login",
-    response_model=LoginResponse,
-    summary="Login with username and password",
-    description="Get a JWT access token",
-    responses={
-        200: {"description": "Successful login"},
-        401: {
-            "model": ErrorMessage,
-            "description": "Invalid credentials"
-        }
-    }
-)
-def login(login_request: LoginRequest):
-    if not validate_credentials(login_request.username, login_request.password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid username or password" 
-        )
 
-    # Create JWT token
-    access_token = create_jwt_token(user, login_request.is_remember_me)
+@router.post("/login")
+def login(loginreques: LoginRequest) -> bool:
+    pass
 
-    return AccessTokenResponse(
-        access_token=access_token, username=login_request.username
-    )
-
-    
 
 @router.post("/", status_code=201)
 def create(task: Task) -> Task | None:

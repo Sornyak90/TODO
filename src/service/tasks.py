@@ -1,5 +1,5 @@
 from typing import List, Optional
-from model.tasks import Task, UserFullModel
+from model.tasks import Task
 import data.tasks as service
 
 
@@ -59,10 +59,3 @@ def delete(name: str):
     """
     return service.delete(name)
 
-def validate_credentials(username: str, password: str) -> UserFullModel | None:
-    for user in users.values():
-        if user.username == username and sha256_crypt.verify(
-            password, user.password_hash
-        ):
-            return user
-    return None
