@@ -1,16 +1,36 @@
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from model.tasks import Task, TaskResponse
+from model.tasks import Task, TaskResponse, User
 import service.tasks as service
 from error import Duplicate, Missing
-from auth.model import LoginRequest
+from auth.auth_jwt import authenticate_user, get_current_user
+from typing import Annotated
+from datetime import timedelta
+from auth.config import ACCESS_TOKEN_EXPIRE_MINUTES
+from auth.auth_jwt import create_access_token, authenticate_user
+
 
 router = APIRouter(prefix="/tasks")
 
 
 @router.post("/login")
-def login(loginreques: LoginRequest) -> bool:
-    pass
+def login(user: User) -> bool:
+    if authenticated_user := authenticate_user(user.username, user.password):
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        print(authenticated_user)
+        access_token = create_access_token(
+        data={"sub": authenticated_user.username}, expires_delta=access_token_expires
+    )
+        return {"access_token": access_token, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
+
+    return read_users_me
+
+
+@router.get("/users/me/")
+def read_users_me(current_user: Annotated[User, Depends(get_current_user)]):    
+    return current_user
 
 
 @router.post("/", status_code=201)
@@ -29,7 +49,6 @@ def create(task: Task) -> Task | None:
     """    
     return service.create(task)
     
-
 
 @router.get("/")
 def get_all() -> list[TaskResponse] | None:

@@ -1,6 +1,3 @@
-from auth.models import LoginRequest
-
-db = {
-    username: "admin",
-    password:"admin"
-}
+SECRET_KEY = 'your-secret-key'
+ALGORITHM = 'HS256'
+ACCESS_TOKEN_EXPIRE_MINUTES = 30

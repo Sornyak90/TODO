@@ -9,3 +9,6 @@ class Task(BaseModel):
 class TaskResponse(Task):
     id: int
 
+class User(BaseModel):
+    username: str
+    password: str
