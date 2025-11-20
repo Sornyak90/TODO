@@ -17,16 +17,6 @@ from auth.auth_jwt import create_access_token, get_current_user
 
 router = APIRouter(prefix="/tasks")
 
-@router.post("/login")
-def login(data:OAuth2PasswordRequestForm = Depends()) :
-    user = fake_users.get(data.username)
-    
-    if not user or user["password"] != data.password:
-        raise HTTPException(status_code=400, detail="Invalid credentials")
-    else:
-        return {"access_token": create_access_token(user), "token_type": "bearer"}
-   
-
 
 @router.post("/", status_code=201)
 def create(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:
@@ -46,7 +36,7 @@ def create(task: Task, current_user: User = Depends(get_current_user)) -> Task |
     
 
 @router.get("/")
-def get_all() -> list[TaskResponse] | None:
+def get_all(current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
     """
     Получить список всех задач.
     
@@ -57,7 +47,7 @@ def get_all() -> list[TaskResponse] | None:
 
 
 @router.get("/{name}")
-def get_one(name: str) -> Task | None:
+def get_one(name: str, current_user: User = Depends(get_current_user)) -> Task | None:
     """
     Получить одну задачу по имени.
     
@@ -77,7 +67,7 @@ def get_one(name: str) -> Task | None:
 
 
 @router.patch("/")
-def update(task: Task) -> Task | None:
+def update(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:
     """
     Обновить существующую задачу.
     
@@ -97,7 +87,7 @@ def update(task: Task) -> Task | None:
 
 
 @router.delete("/{name}", status_code=204)
-def delete(name: str):
+def delete(name: str, current_user: User = Depends(get_current_user)):
     """
     Удалить задачу по её имени.
     
