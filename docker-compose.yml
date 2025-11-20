@@ -3,9 +3,6 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-    command: uvicorn src.main:app --host 127.0.0.1 --port 8000 --reload
-    volumes:
-      - ./src:/app/src
     ports:
       - "8000:8000"
     environment:

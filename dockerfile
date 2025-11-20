@@ -1,21 +1,17 @@
-FROM python:3.13
+FROM python:3.12-slim-trixie
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /bin/
 
 WORKDIR /app
 
-# Устанавливаем uv
-RUN pip install uv
+COPY pyproject.toml uv.lock ./
 
-# Копируем файлы зависимостей
-COPY pyproject.toml ./
+RUN uv sync --frozen --compile-bytecode --no-cache --no-dev
 
-# Устанавливаем зависимости с помощью uv
-RUN uv pip install --system -r pyproject.toml
+COPY src/ ./
 
-# Копируем исходный код
-COPY . .
-
-# Открываем порт
 EXPOSE 8000
 
+COPY .env .
+
 # Команда для запуска
-CMD ["uvicorn", "main:app", "--host", "127.0.0.1", "--port", "8000"]
+CMD ["uv","run","uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
