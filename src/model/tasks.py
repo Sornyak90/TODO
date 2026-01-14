@@ -5,6 +5,9 @@ class Task(BaseModel):
     name: str
     status: bool
 
+class Filtr():
+    filtr: int
+
 # Полная схема задачи с уникальным идентификатором
 class TaskResponse(Task):
     id: int

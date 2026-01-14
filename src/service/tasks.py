@@ -1,5 +1,5 @@
 from typing import List, Optional
-from model.tasks import Task
+from model.tasks import Task, Filtr
 import data.tasks as service
 
 
@@ -15,13 +15,13 @@ def create(task: Task) -> Task | None:
     return service.create(task)
 
 
-def get_all() -> Optional[List[Task]]:
+def get_all(filtr: Filtr) -> Optional[List[Task]]:
     """Получает список всех существующих задач.
 
     Returns:
         Optional[List[Task]]: Список всех задач или None, если нет задач.
     """
-    return service.get_all()
+    return service.get_all(filtr)
 
 
 def get_one(name: str) -> Optional[Task]:

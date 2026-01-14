@@ -1,4 +1,4 @@
-from model.tasks import Task, TaskResponse
+from model.tasks import Task, TaskResponse, Filtr
 from error import Duplicate, Missing
 from . import Session, User
 from sqlalchemy.exc import IntegrityError
@@ -46,7 +46,7 @@ def get_one(name: str) -> Task | None:
         return task
     
 
-def get_all() -> list[Task]:
+def get_all(filtr: Filtr) -> list[Task]:
     # """
     # Возвращает список всех задач.
     

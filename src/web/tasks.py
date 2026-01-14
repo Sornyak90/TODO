@@ -4,7 +4,7 @@ from fastapi.security import (
     HTTPBasicCredentials, 
     OAuth2PasswordRequestForm
 )
-from model.tasks import Task, TaskResponse, User
+from model.tasks import Task, TaskResponse, User, Filtr
 import service.tasks as service
 from error import Duplicate, Missing
 from typing import Annotated
@@ -36,7 +36,7 @@ def create(task: Task, current_user: User = Depends(get_current_user)) -> Task |
     
 
 @router.get("/")
-def get_all(current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
+def get_all(filtr: Filtr, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
     """
     Получить список всех задач.
     
