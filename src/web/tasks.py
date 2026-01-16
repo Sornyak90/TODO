@@ -43,7 +43,7 @@ def get_all(filtr: Filtr, current_user: User = Depends(get_current_user)) -> lis
     Возвращает:
     list[Task] | None: Список всех задач или None, если задач нет.
     """
-    return service.get_all()
+    return service.get_all(filtr)
 
 
 @router.get("/{name}")

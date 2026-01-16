@@ -47,15 +47,34 @@ def get_one(name: str) -> Task | None:
     
 
 def get_all(filtr: Filtr) -> list[Task]:
-    # """
-    # Возвращает список всех задач.
+    """
+    Возвращает список всех задач с фильтрацией по статусу.
     
-    # Returns:
-    #     list[Task]: Список объектов Task.
-    # """
+    Args:
+        filtr (Filtr): Фильтр для отбора задач (0 - все, 1 - выполнено, 2 - невыполнено)
+    
+    Returns:
+        list[Task]: Список объектов Task.
+    """
+    print("hi")
     with Session() as session:
+        # Создаем базовый запрос
+        query = session.query(Task)
+        
+        # Добавляем фильтр в SQL-запрос
+        if filtr == 1:
+            # SQL: SELECT * FROM tasks WHERE status = 'выполнено'
+            query = query.filter(Task.status == True)
+        elif filtr == 2:
+            # SQL: SELECT * FROM tasks WHERE status = 'невыполнено'
+            query = query.filter(Task.status == False)
+        # Если filtr == 0, SQL: SELECT * FROM tasks
+        
+        # Выполняем запрос с фильтрацией на уровне БД
         tasks = session.query(User).all()
+        
         return tasks
+
     
 
 def delete(name: str):
