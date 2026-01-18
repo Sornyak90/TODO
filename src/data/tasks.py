@@ -3,6 +3,7 @@ from error import Duplicate, Missing
 from . import Session, User
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
+from model.tasks import Filtr
 
 
 def create(task: Task) -> TaskResponse | None:
@@ -56,22 +57,22 @@ def get_all(filtr: Filtr) -> list[Task]:
     Returns:
         list[Task]: Список объектов Task.
     """
-    print("hi")
     with Session() as session:
         # Создаем базовый запрос
-        query = session.query(Task)
+        query = session.query(User)
         
         # Добавляем фильтр в SQL-запрос
-        if filtr == 1:
+        if filtr == Filtr.true:
+            print("hi")
             # SQL: SELECT * FROM tasks WHERE status = 'выполнено'
-            query = query.filter(Task.status == True)
-        elif filtr == 2:
+            query = query.filter(User.status == True)
+        elif filtr == Filtr.false:
             # SQL: SELECT * FROM tasks WHERE status = 'невыполнено'
-            query = query.filter(Task.status == False)
+            query = query.filter(User.status == False)
         # Если filtr == 0, SQL: SELECT * FROM tasks
         
         # Выполняем запрос с фильтрацией на уровне БД
-        tasks = session.query(User).all()
+        tasks = query.all()
         
         return tasks
 

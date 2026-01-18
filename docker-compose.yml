@@ -1,15 +1,15 @@
 services:
-  web:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8000:8000"
-    environment:
-      - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
-    depends_on:
-      - db
-    restart: unless-stopped
+  # web:
+  #   build: 
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8000:8000"
+  #   environment:
+  #     - DATABASE_URL=postgresql://postgres:postgres@db:5432/postgres
+  #   depends_on:
+  #     - db
+  #   restart: unless-stopped
 
   db:
     image: postgres:17

@@ -17,5 +17,5 @@ app.add_middleware(
 app.include_router(tasks.router)  # подключаем роутер задач
 app.include_router(auth_router) 
 
-# if __name__ == "__main__":
-#     uvicorn.run("main:app", reload=True)  # запускаем приложение с автообновлением
+if __name__ == "__main__":
+    uvicorn.run("main:app", reload=True)  # запускаем приложение с автообновлением
