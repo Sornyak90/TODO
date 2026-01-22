@@ -60,6 +60,18 @@
             color: white;
             border-color: #007bff;
         }
+        .pagination-container {
+            margin-top: 20px;
+        }
+        .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        .pagination-info {
+            margin-top: 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
     </style>
 </head>
 <body>
@@ -158,7 +170,7 @@
                 </div>
             </div>
             
-            <!-- Правая часть - список всех задач -->
+            <!-- Правая часть - список всех задач с пагинацией -->
             <div class="col-md-8">
                 <div class="section">
                     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -168,6 +180,18 @@
                     <div id="tasksList">
                         <!-- Здесь будет отображаться список задач -->
                         <div class="text-center text-muted">Загрузка задач...</div>
+                    </div>
+                    
+                    <!-- Пагинация -->
+                    <div id="paginationContainer" class="pagination-container" style="display: none;">
+                        <nav aria-label="Навигация по страницам">
+                            <ul id="pagination" class="pagination justify-content-center">
+                                <!-- Страницы будут добавлены динамически -->
+                            </ul>
+                        </nav>
+                        <div id="paginationInfo" class="pagination-info text-center">
+                            <!-- Информация о пагинации будет добавлена динамически -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,10 +203,17 @@
 // Базовый URL API
 const API_BASE_URL = 'http://localhost:8000'; // Замените на ваш URL API
 
-// Переменные для хранения токена
+// Константы для пагинации
+const ITEMS_PER_PAGE = 5; // Количество записей на странице
+const MAX_PAGES_SHOWN = 7; // Максимальное количество отображаемых номеров страниц
+
+// Переменные для хранения токена и состояния пагинации
 let accessToken = localStorage.getItem('accessToken');
 let tokenType = localStorage.getItem('tokenType');
 let currentFilter = 0; // default = 0
+let currentPage = 1; // Текущая страница
+let totalTasks = 0; // Общее количество задач
+let totalPages = 1; // Общее количество страниц
 
 // Функция для аутентификации
 async function login(username, password) {
@@ -243,36 +274,163 @@ function showMainContent() {
     // Устанавливаем значение по умолчанию для фильтра
     document.getElementById('filterAll').checked = true;
     currentFilter = 0;
+    currentPage = 1; // Сбрасываем на первую страницу
     
     // Загружаем задачи с фильтром по умолчанию
-    getFilteredTasks(currentFilter);
+    getTasksWithPagination(currentFilter, currentPage);
 }
 
-// Функция для получения отфильтрованных задач
-async function getFilteredTasks(filterValue) {
+// Функция для получения задач с пагинацией (использует новый эндпоинт)
+async function getTasksWithPagination(filterValue, page = 1) {
     if (!checkAuth()) return;
     
     try {
-        console.log(`Запрашиваем задачи с фильтром: filtr=${filterValue}`);
+        console.log(`Запрашиваем задачи с фильтром: filtr=${filterValue}, страница=${page}`);
         
-        const response = await authFetch(`${API_BASE_URL}/tasks/?filtr=${filterValue}`);
+        // Используем новый эндпоинт /{page}
+        const response = await authFetch(`${API_BASE_URL}/tasks/${page}?filtr=${filterValue}`);
         if (!response.ok) {
             throw new Error('Ошибка при получении задач');
         }
         
-        const tasks = await response.json();
+        const data = await response.json();
+        
+        // Предполагаем, что API возвращает массив [tasks, totalPages]
+        const tasks = data[0]; // список задач для текущей страницы
+        totalPages = data[1]; // общее количество страниц
+        totalTasks = tasks.length * totalPages; // примерное общее количество задач
+        
+        // Если запрошенная страница больше общего количества страниц, сбрасываем на первую
+        if (page > totalPages) {
+            page = 1;
+            currentPage = 1;
+        }
         
         // Обновляем заголовок в зависимости от фильтра
         updateTasksHeader(filterValue);
         
+        // Отображаем задачи и пагинацию
         displayTasks(tasks);
+        updatePagination(filterValue, page);
+        
+        // Показываем информацию о пагинации
+        updatePaginationInfo(page);
+        
     } catch (error) {
         console.error('Ошибка:', error);
         if (error.message !== 'Unauthorized') {
             document.getElementById('tasksList').innerHTML =
                 '<div class="alert alert-danger">Ошибка при загрузке задач</div>';
+            document.getElementById('paginationContainer').style.display = 'none';
         }
     }
+}
+
+// Функция для обновления информации о пагинации
+function updatePaginationInfo(currentPage) {
+    const paginationInfo = document.getElementById('paginationInfo');
+    const startItem = (currentPage - 1) * ITEMS_PER_PAGE + 1;
+    const endItem = Math.min(currentPage * ITEMS_PER_PAGE, totalTasks);
+    
+    if (totalTasks === 0) {
+        paginationInfo.innerHTML = 'Задачи не найдены';
+    } else {
+        paginationInfo.innerHTML = `
+            Страница ${currentPage} из ${totalPages}<br>
+            Задач на странице: ${ITEMS_PER_PAGE}
+        `;
+    }
+}
+
+// Функция для обновления пагинации
+function updatePagination(filterValue, currentPage) {
+    const paginationContainer = document.getElementById('paginationContainer');
+    const pagination = document.getElementById('pagination');
+    
+    if (totalPages <= 1) {
+        paginationContainer.style.display = 'none';
+        return;
+    }
+    
+    paginationContainer.style.display = 'block';
+    pagination.innerHTML = '';
+    
+    // Добавляем кнопку "Предыдущая"
+    const prevDisabled = currentPage === 1 ? 'disabled' : '';
+    pagination.innerHTML += `
+        <li class="page-item ${prevDisabled}">
+            <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Предыдущая">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+    `;
+    
+    // Вычисляем, какие страницы показывать
+    let startPage = Math.max(1, currentPage - Math.floor(MAX_PAGES_SHOWN / 2));
+    let endPage = Math.min(totalPages, startPage + MAX_PAGES_SHOWN - 1);
+    
+    // Корректируем если мы у начала или конца
+    if (endPage - startPage + 1 < MAX_PAGES_SHOWN) {
+        startPage = Math.max(1, endPage - MAX_PAGES_SHOWN + 1);
+    }
+    
+    // Добавляем первую страницу если нужно
+    if (startPage > 1) {
+        pagination.innerHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" data-page="1">1</a>
+            </li>
+        `;
+        if (startPage > 2) {
+            pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+    }
+    
+    // Добавляем номера страниц
+    for (let i = startPage; i <= endPage; i++) {
+        const active = i === currentPage ? 'active' : '';
+        pagination.innerHTML += `
+            <li class="page-item ${active}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+        `;
+    }
+    
+    // Добавляем последнюю страницу если нужно
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+        }
+        pagination.innerHTML += `
+            <li class="page-item">
+                <a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a>
+            </li>
+        `;
+    }
+    
+    // Добавляем кнопку "Следующая"
+    const nextDisabled = currentPage === totalPages ? 'disabled' : '';
+    pagination.innerHTML += `
+        <li class="page-item ${nextDisabled}">
+            <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Следующая">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+    `;
+    
+    // Добавляем обработчики событий для страниц
+    document.querySelectorAll('#pagination .page-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (this.parentElement.classList.contains('disabled')) return;
+            
+            const page = parseInt(this.getAttribute('data-page'));
+            if (page && page !== currentPage) {
+                currentPage = page;
+                getTasksWithPagination(filterValue, page);
+            }
+        });
+    });
 }
 
 // Функция для обновления заголовка списка задач
@@ -330,8 +488,8 @@ function displayTasks(tasks) {
         `;
     });
     
-    // Добавляем информацию о количестве задач
-    html += `<div class="mt-3 text-muted">Найдено задач: ${tasks.length}</div>`;
+    // Добавляем информацию о количестве задач на странице
+    html += `<div class="mt-3 text-muted">Задач на странице: ${tasks.length}</div>`;
     
     tasksList.innerHTML = html;
 }
@@ -387,8 +545,9 @@ async function createTask() {
         
         document.getElementById('createTaskName').value = '';
         
-        // Обновляем список с текущим фильтром
-        getFilteredTasks(currentFilter);
+        // Обновляем список с текущим фильтром и возвращаемся на первую страницу
+        currentPage = 1;
+        getTasksWithPagination(currentFilter, currentPage);
         
         showMessage('success', 'Задача успешно создана!');
     } catch (error) {
@@ -421,8 +580,8 @@ async function setStatusTrue() {
         
         document.getElementById('updateTaskName').value = '';
         
-        // Обновляем список с текущим фильтром
-        getFilteredTasks(currentFilter);
+        // Обновляем список с текущим фильтром и текущей страницей
+        getTasksWithPagination(currentFilter, currentPage);
         
         showMessage('success', 'Статус задачи изменен на "Выполнено"!');
     } catch (error) {
@@ -455,8 +614,8 @@ async function setStatusFalse() {
         
         document.getElementById('updateTaskName').value = '';
         
-        // Обновляем список с текущим фильтром
-        getFilteredTasks(currentFilter);
+        // Обновляем список с текущим фильтром и текущей страницей
+        getTasksWithPagination(currentFilter, currentPage);
         
         showMessage('success', 'Статус задачи изменен на "Не выполнено"!');
     } catch (error) {
@@ -490,8 +649,8 @@ async function deleteTask() {
         if (result) {
             document.getElementById('deleteTaskName').value = '';
             
-            // Обновляем список с текущим фильтром
-            getFilteredTasks(currentFilter);
+            // Обновляем список с текущим фильтром и проверяем текущую страницу
+            getTasksWithPagination(currentFilter, currentPage);
             
             showMessage('success', 'Задача успешно удалена!');
         } else {
@@ -515,7 +674,7 @@ async function searchTask() {
     }
     
     try {
-        const response = await authFetch(`${API_BASE_URL}/tasks/${name}`);
+        const response = await authFetch(`${API_BASE_URL}/tasks/search/${name}`);
         if (!response.ok) {
             throw new Error('Ошибка при поиске задачи');
         }
@@ -549,7 +708,7 @@ async function searchTask() {
 
 // Функция для обновления списка задач
 function refreshTasks() {
-    getFilteredTasks(currentFilter);
+    getTasksWithPagination(currentFilter, currentPage);
 }
 
 // Показываем всплывающее сообщение
@@ -625,11 +784,12 @@ document.addEventListener('DOMContentLoaded', function () {
         radio.addEventListener('change', function() {
             const filterValue = parseInt(this.value);
             currentFilter = filterValue;
+            currentPage = 1; // Сбрасываем на первую страницу при изменении фильтра
             
             console.log(`Изменен фильтр на: ${filterValue}`);
             
             // Загружаем задачи с новым фильтром
-            getFilteredTasks(filterValue);
+            getTasksWithPagination(filterValue, currentPage);
         });
     });
     

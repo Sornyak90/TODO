@@ -4,6 +4,9 @@ from . import Session, User
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 from model.tasks import Filtr
+from typing import Tuple
+
+import math
 
 
 def create(task: Task) -> TaskResponse | None:
@@ -63,7 +66,6 @@ def get_all(filtr: Filtr) -> list[Task]:
         
         # Добавляем фильтр в SQL-запрос
         if filtr == Filtr.true:
-            print("hi")
             # SQL: SELECT * FROM tasks WHERE status = 'выполнено'
             query = query.filter(User.status == True)
         elif filtr == Filtr.false:
@@ -76,7 +78,25 @@ def get_all(filtr: Filtr) -> list[Task]:
         
         return tasks
 
-    
+def get_pages(filtr: Filtr, page: int) -> Tuple[list[Task], int]:
+     with Session() as session:
+        page_size = 5
+        # Создаем базовый запрос
+        query = session.query(User)
+        if page < 1:
+            page = 1
+        offset = (page - 1) * page_size
+        
+        if filtr == Filtr.true:
+            query = query.filter(User.status == True)
+        elif filtr == Filtr.false:
+            query = query.filter(User.status == False)
+        
+        total_count = math.ceil(query.count()/page_size)
+        
+        tasks = query.offset(offset).limit(page_size).all()
+        
+        return tasks, total_count
 
 def delete(name: str):
     # """

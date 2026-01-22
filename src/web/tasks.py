@@ -7,16 +7,12 @@ from fastapi.security import (
 from model.tasks import Task, TaskResponse, User, Filtr
 import service.tasks as service
 from error import Duplicate, Missing
-from typing import Annotated
+from typing import Annotated, Tuple
 from datetime import timedelta
 from auth.fake_db import fake_users
 from auth.auth_jwt import create_access_token, get_current_user
 
-
-
-
 router = APIRouter(prefix="/tasks")
-
 
 @router.post("/", status_code=201)
 def create(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:
@@ -45,6 +41,16 @@ def get_all(filtr: Filtr, current_user: User = Depends(get_current_user)) -> lis
     """
     return service.get_all(filtr)
 
+@router.get("/{page}")
+def get_pages(filtr: Filtr, page: int, current_user: User = Depends(get_current_user)) -> Tuple[list[TaskResponse], int] | None:
+    """
+    Получить список всех задач.
+    
+    Возвращает:
+    list[Task] | None: Список всех задач или None, если задач нет.
+    """
+    tasks, pages = service.get_pages(filtr, page)
+    return tasks, pages
 
 @router.get("/{name}")
 def get_one(name: str, current_user: User = Depends(get_current_user)) -> Task | None:
@@ -64,7 +70,6 @@ def get_one(name: str, current_user: User = Depends(get_current_user)) -> Task |
         return service.get_one(name)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
-
 
 @router.patch("/")
 def update(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:

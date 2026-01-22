@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 from model.tasks import Task, Filtr
 import data.tasks as service
 
@@ -22,6 +22,10 @@ def get_all(filtr: Filtr) -> Optional[List[Task]]:
         Optional[List[Task]]: Список всех задач или None, если нет задач.
     """
     return service.get_all(filtr)
+
+def get_pages(filtr: Filtr, page: int) -> Tuple[list[Task], int]:
+    tasks, pages = service.get_pages(filtr, page)
+    return tasks, pages
 
 
 def get_one(name: str) -> Optional[Task]:
