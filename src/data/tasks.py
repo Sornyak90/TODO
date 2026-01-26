@@ -47,6 +47,7 @@ def get_one(name: str) -> Task | None:
     # """
     with Session() as session:
         task = session.query(User).filter_by(name=name).first()
+        print(task)
         return task
     
 
@@ -61,25 +62,6 @@ def get_all(filtr: Filtr) -> list[Task]:
         list[Task]: Список объектов Task.
     """
     with Session() as session:
-        # Создаем базовый запрос
-        query = session.query(User)
-        
-        # Добавляем фильтр в SQL-запрос
-        if filtr == Filtr.true:
-            # SQL: SELECT * FROM tasks WHERE status = 'выполнено'
-            query = query.filter(User.status == True)
-        elif filtr == Filtr.false:
-            # SQL: SELECT * FROM tasks WHERE status = 'невыполнено'
-            query = query.filter(User.status == False)
-        # Если filtr == 0, SQL: SELECT * FROM tasks
-        
-        # Выполняем запрос с фильтрацией на уровне БД
-        tasks = query.all()
-        
-        return tasks
-
-def get_pages(filtr: Filtr, page: int) -> Tuple[list[Task], int]:
-     with Session() as session:
         page_size = 5
         # Создаем базовый запрос
         query = session.query(User)

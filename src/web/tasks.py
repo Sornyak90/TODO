@@ -33,24 +33,23 @@ def create(task: Task, current_user: User = Depends(get_current_user)) -> Task |
 
 @router.get("/")
 def get_all(filtr: Filtr, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
-    """
-    Получить список всех задач.
-    
-    Возвращает:
-    list[Task] | None: Список всех задач или None, если задач нет.
-    """
-    return service.get_all(filtr)
+    try:
+        # Проверяем filtr
+        if int(filtr.value) > 2:
+            raise HTTPException(
+                status_code=422, 
+                detail=[{
+                    "loc": ["query", "filtr"],
+                    "msg": "Значение filtr должно быть не больше 2",
+                    "type": "value_error"
+                }]
+            )
+        
+        tasks, pages = service.get_pages(filtr, page)
+        return tasks, pages
+    except Missing as e:
+        raise HTTPException(status_code=422, detail=e.msg)
 
-@router.get("/{page}")
-def get_pages(filtr: Filtr, page: int, current_user: User = Depends(get_current_user)) -> Tuple[list[TaskResponse], int] | None:
-    """
-    Получить список всех задач.
-    
-    Возвращает:
-    list[Task] | None: Список всех задач или None, если задач нет.
-    """
-    tasks, pages = service.get_pages(filtr, page)
-    return tasks, pages
 
 @router.get("/{name}")
 def get_one(name: str, current_user: User = Depends(get_current_user)) -> Task | None:
