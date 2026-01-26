@@ -51,7 +51,7 @@ def get_one(name: str) -> Task | None:
         return task
     
 
-def get_all(filtr: Filtr) -> list[Task]:
+def get_all(filtr: Filtr, offset: int, page_size: int) -> list[Task]:
     """
     Возвращает список всех задач с фильтрацией по статусу.
     
@@ -62,23 +62,16 @@ def get_all(filtr: Filtr) -> list[Task]:
         list[Task]: Список объектов Task.
     """
     with Session() as session:
-        page_size = 5
         # Создаем базовый запрос
-        query = session.query(User)
-        if page < 1:
-            page = 1
-        offset = (page - 1) * page_size
-        
+        query = session.query(User) 
         if filtr == Filtr.true:
             query = query.filter(User.status == True)
         elif filtr == Filtr.false:
             query = query.filter(User.status == False)
         
-        total_count = math.ceil(query.count()/page_size)
-        
         tasks = query.offset(offset).limit(page_size).all()
         
-        return tasks, total_count
+        return tasks
 
 def delete(name: str):
     # """

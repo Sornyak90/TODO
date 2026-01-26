@@ -32,7 +32,7 @@ def create(task: Task, current_user: User = Depends(get_current_user)) -> Task |
     
 
 @router.get("/")
-def get_all(filtr: Filtr, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
+def get_all(filtr: Filtr = 0, offset: int = 0, page_size: int = 5, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
     try:
         # Проверяем filtr
         if int(filtr.value) > 2:
@@ -44,9 +44,8 @@ def get_all(filtr: Filtr, current_user: User = Depends(get_current_user)) -> lis
                     "type": "value_error"
                 }]
             )
-        
-        tasks, pages = service.get_pages(filtr, page)
-        return tasks, pages
+        tasks = service.get_all(filtr,offset, page_size)
+        return tasks
     except Missing as e:
         raise HTTPException(status_code=422, detail=e.msg)
 

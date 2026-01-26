@@ -15,18 +15,13 @@ def create(task: Task) -> Task | None:
     return service.create(task)
 
 
-def get_all(filtr: Filtr) -> Optional[List[Task]]:
+def get_all(filtr: Filtr, offset: int, page_size: int) -> Optional[List[Task]]:
     """Получает список всех существующих задач.
 
     Returns:
         Optional[List[Task]]: Список всех задач или None, если нет задач.
     """
-    return service.get_all(filtr)
-
-def get_pages(filtr: Filtr, page: int) -> Tuple[list[Task], int]:
-    tasks, pages = service.get_pages(filtr, page)
-    return tasks, pages
-
+    return service.get_all(filtr, offset, page_size)
 
 def get_one(name: str) -> Optional[Task]:
     """Получает отдельную задачу по указанному названию.
