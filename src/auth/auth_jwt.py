@@ -6,9 +6,9 @@ from auth.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 from jose import JWTError, jwt
 from auth.fake_db import fake_users
 
-router = APIRouter()
+router = APIRouter(prefix="/login")
 
-@router.post("/login")
+@router.post("/")
 def login(data:OAuth2PasswordRequestForm = Depends()) :
     user = fake_users.get(data.username)
     
