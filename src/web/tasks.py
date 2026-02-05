@@ -5,7 +5,7 @@ from fastapi.security import (
     OAuth2PasswordRequestForm
 )
 from model.tasks import Task, TaskResponse, User, Filtr
-import service.tasks as service
+import data.tasks as service
 from error import Duplicate, Missing
 from typing import Annotated, Tuple
 from datetime import timedelta
