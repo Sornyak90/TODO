@@ -49,7 +49,7 @@ def get_all(filtr: Filtr = 0, offset: int = 0, page_size: int = 5, current_user:
         raise HTTPException(status_code=422, detail=e.msg)
 
 @router.get("/{name}")
-def get_one(name: str, current_user: User = Depends(get_current_user)) -> Task | None:
+def get_one(name: str, current_user: User = Depends(get_current_user)) -> TaskResponse | None:
     """
     Получить одну задачу по имени.
     
