@@ -30,7 +30,6 @@ def create(task: Task, current_user: User = Depends(get_current_user)) -> Task |
     """    
     return service.create(task)
     
-
 @router.get("/")
 def get_all(filtr: Filtr = 0, offset: int = 0, page_size: int = 5, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
     try:
@@ -48,7 +47,6 @@ def get_all(filtr: Filtr = 0, offset: int = 0, page_size: int = 5, current_user:
         return tasks
     except Missing as e:
         raise HTTPException(status_code=422, detail=e.msg)
-
 
 @router.get("/{name}")
 def get_one(name: str, current_user: User = Depends(get_current_user)) -> Task | None:
@@ -87,7 +85,6 @@ def update(task: Task, current_user: User = Depends(get_current_user)) -> Task |
         return service.update(task)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
-
 
 @router.delete("/{name}", status_code=204)
 def delete(name: str, current_user: User = Depends(get_current_user)):
