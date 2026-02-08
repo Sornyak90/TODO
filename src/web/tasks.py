@@ -63,9 +63,16 @@ def get_one(name: str, current_user: User = Depends(get_current_user)) -> TaskRe
     HTTPException: Если задача с указанным именем не найдена (код статуса 404).
     """
     try:
-        return service.get_one(name)
+        result = service.get_one(name)
+        
+        # Проверяем результат на None
+        if result is None:
+            raise Missing(f"Task '{name}' not found")
+
+        return result
+        
     except Missing as e:
-        raise HTTPException(status_code=404, detail=e.msg)
+        raise HTTPException(status_code=404, detail=str(e))
 
 @router.patch("/")
 def update(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:
@@ -101,6 +108,13 @@ def delete(name: str, current_user: User = Depends(get_current_user)):
     HTTPException: Если задача с указанным именем не найдена (код статуса 404).
     """
     try:
-        return service.delete(name)
+        result = service.delete(name)
+        
+        # Проверяем результат на None
+        if result == False:
+            raise Missing(f"Task '{name}' not found")
+
+        return result
+        
     except Missing as e:
-        raise HTTPException(status_code=404, detail=e.msg)
+        raise HTTPException(status_code=404, detail=str(e))

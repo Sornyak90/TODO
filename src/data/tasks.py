@@ -47,7 +47,6 @@ def get_one(name: str) -> Task | None:
     # """
     with Session() as session:
         task = session.query(User).filter_by(name=name).first()
-        print(task)
         return task
     
 
