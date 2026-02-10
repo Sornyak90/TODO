@@ -15,7 +15,7 @@ from auth.auth_jwt import create_access_token, get_current_user
 router = APIRouter(prefix="/tasks")
 
 @router.post("/", status_code=201)
-def create(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:
+def create(task: Task, current_user: User = Depends(get_current_user)) -> TaskResponse | None:
     """
     Создать новую задачу.
     

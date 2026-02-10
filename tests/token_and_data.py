@@ -9,6 +9,8 @@ import string
 
 client = TestClient(app)
 
+
+
 task_data_1 = {
     "name": ''.join(random.choices(string.ascii_letters, k=5)),
     "status": False,
@@ -24,6 +26,16 @@ task_data_3 = {
     "status": "333",
 }
 
+task_name = "Task_To_Update"
+task_new = {
+    "name": task_name,
+    "status": True,
+}
+
+task_data_4 = {
+        "name": task_name,
+        "status": False,
+}
 
 login_data = {
         "username": "admin",  

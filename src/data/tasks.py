@@ -109,13 +109,16 @@ def update(task: Task) -> Task | None:
     # Returns:
     #     Task | None: Обновленная задача или None, если возникла ошибка.
     # """
-    with Session.begin() as session:
+    session = Session()
+    try:
         update_task = session.query(User).filter_by(name=task.name).first()
-    
+        
         if update_task:
             update_task.status = task.status
-            
             session.commit()
+            session.refresh(update_task)
             return update_task
         else:
-            return None
+            raise Missing(f"Задача с именем '{task.name}' не найдена")
+    finally:
+        session.close()
