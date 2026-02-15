@@ -3,9 +3,11 @@ from main import app
 from src.auth.config import SECRET_KEY  
 from datetime import datetime, timedelta, timezone
 from jose import jwt
+from src.data.config import settings
 import json
 import random
 import string
+
 
 client = TestClient(app)
 

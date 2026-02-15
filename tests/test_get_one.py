@@ -1,4 +1,4 @@
-from tests.token_and_data import *
+from tests.conftest import *
 import json
 
 # Импортируются тестовые данные: токены и тестовые данные для БД

@@ -1,4 +1,4 @@
-from tests.token_and_data import *
+from tests.conftest import *
 import json
 
 def test_delete_existing_task_success():

@@ -1,5 +1,6 @@
-from tests.token_and_data import *
+from tests.conftest import *
 import json
+from unittest.mock import MagicMock
 
 # Список токенов для тестирования аутентификации:
 # 1. Валидный токен
