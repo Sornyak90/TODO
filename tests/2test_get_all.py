@@ -1,19 +1,11 @@
-from tests.conftest import *
-import json
-from unittest.mock import MagicMock
+from tests.conftest import *  # Импорт тестовых данных и токенов из модуля
 
-# Список токенов для тестирования аутентификации:
-# 1. Валидный токен
-# 2. Пустая строка (невалидный)
-# 3. Случайная строка (невалидный)
-token_list = [token, "", "saiudghaijyusd"]
-
-def test_access_with_auth():
+def test_access_with_auth(client,token_list1):
     """
     Тестирование доступа к эндпоинту с разными типами токенов.
     Проверяет корректность работы аутентификации.
     """
-    for i in range(len(token_list)):
+    for i in range(len(token_list1)):
         response = client.get(
             "/tasks/", 
             params={
@@ -21,7 +13,7 @@ def test_access_with_auth():
                 "offset": 0,       # Начальная позиция
                 "page_size": 5     # Размер страницы
             },
-            headers={"Authorization": f"Bearer {token_list[i]}"}
+            headers={"Authorization": f"Bearer {token_list1[i]}"}
         )
         
         # Проверки для каждого токена:
@@ -32,7 +24,7 @@ def test_access_with_auth():
         if i == 2: 
             assert response.status_code == 401  # Невалидный токен - ошибка аутентификации
 
-def test_pagination():
+def test_pagination(client, auth_token):
     """
     Тестирование пагинации (разбивки на страницы).
     Проверяет корректность работы параметров offset и page_size.
@@ -45,7 +37,7 @@ def test_pagination():
             "offset": 0,      # Начинаем с первой записи
             "page_size": 5    # Берем 5 записей
         },
-        headers={"Authorization": f"Bearer {token_list[0]}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -59,7 +51,7 @@ def test_pagination():
             "offset": 5,      # Пропускаем первые 5 записей
             "page_size": 5    # Берем следующие 5
         },
-        headers={"Authorization": f"Bearer {token_list[0]}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -74,7 +66,7 @@ def test_pagination():
             "offset": 2000,   # Очень большое смещение
             "page_size": 5
         },
-        headers={"Authorization": f"Bearer {token_list[0]}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -88,7 +80,7 @@ def test_pagination():
             "offset": -1,     # Недопустимое значение
             "page_size": 5
         },
-        headers={"Authorization": f"Bearer {token_list[0]}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 422  # Ожидаем ошибку валидации (422 Unprocessable Entity)
     
@@ -99,7 +91,7 @@ def test_pagination():
             "offset": 0,
             "page_size": -5   # Недопустимое значение
         },
-        headers={"Authorization": f"Bearer {token_list[0]}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 422  # Ошибка валидации
     
@@ -110,11 +102,11 @@ def test_pagination():
             "offset": 0,
             "page_size": 0    # Недопустимое значение (должно быть > 0)
         },
-        headers={"Authorization": f"Bearer {token_list[0]}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 422  # Ошибка валидации
     
-def test_filter():
+def test_filter(client, auth_token):
     """
     Тестирование фильтрации задач по статусу.
     Проверяет работу параметра filtr.
@@ -125,7 +117,7 @@ def test_filter():
     response = client.get(
         "/tasks/",
         params={"filtr": 0, "offset": 0, "page_size": 2000},
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     
@@ -134,7 +126,7 @@ def test_filter():
     response = client.get(
         "/tasks/",
         params={"filtr": 1, "offset": 0, "page_size": 10},
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     datas = response.json()
@@ -146,7 +138,7 @@ def test_filter():
     response = client.get(
         "/tasks/",
         params={"filtr": 2, "offset": 0, "page_size": 10},
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 200
     datas = response.json()
@@ -158,7 +150,7 @@ def test_filter():
     response = client.get(
         "/tasks/",
         params={"filtr": 999, "offset": 0, "page_size": 10},
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 422  # Ошибка валидации
     
@@ -166,7 +158,7 @@ def test_filter():
     response = client.get(
         "/tasks/",
         params={"filtr": -1, "offset": 0, "page_size": 10},
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert response.status_code == 422  # Ошибка валидации
     
@@ -175,7 +167,7 @@ def test_filter():
     response = client.get(
         "/tasks/",
         params={"offset": 0, "page_size": 10}, 
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     # В зависимости от реализации API:
     # - Может использовать значение по умолчанию (например, filtr=0)

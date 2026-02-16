@@ -4,7 +4,7 @@ import json
 # Импортируются тестовые данные: токены и тестовые данные для БД
 # token - предположительно валидный токен для тестов
 
-def test_get_existing_task():
+def test_get_existing_task(client,auth_token):
     """
     Тест успешного получения существующей задачи.
     
@@ -15,11 +15,17 @@ def test_get_existing_task():
     4. Что статус задачи правильный (в данном случае False - завершенная)
     """
     task_name = "TestTask_GetOne"  # Имя тестовой задачи, которая должна существовать в БД
+
+    response = client.post(
+            "/tasks/", 
+            json={"name":task_name, "status":False}, 
+            headers={"Authorization": f"Bearer {auth_token}"}  
+        )
     
     # Отправляем GET запрос для получения конкретной задачи по имени
     response = client.get(
         f"/tasks/{task_name}",  # URL: /tasks/TestTask_GetOne
-        headers={"Authorization": f"Bearer {token}"}  # С валидным токеном
+        headers={"Authorization": f"Bearer {auth_token}"}  # С валидным токеном
     )
     
     # Проверка 1: Статус код должен быть 200 (успех)
@@ -41,7 +47,7 @@ def test_get_existing_task():
     assert task["status"] == False
 
 
-def test_get_nonexistent_task():
+def test_get_nonexistent_task(client,auth_token):
     """
     Тест попытки получения несуществующей задачи.
     
@@ -53,7 +59,7 @@ def test_get_nonexistent_task():
     
     response = client.get(
         f"/tasks/{non_existent_name}",  # Запрос несуществующей задачи
-        headers={"Authorization": f"Bearer {token}"}  # С валидным токеном
+        headers={"Authorization": f"Bearer {auth_token}"}  # С валидным токеном
     )
     
     # Проверка: должен вернуться 404 (не найдено)
@@ -64,7 +70,7 @@ def test_get_nonexistent_task():
     # assert "not found" in error_detail["detail"].lower()
 
 
-def test_get_task_unauthorized():
+def test_get_task_unauthorized(client,auth_token):
     """
     Тест доступа к задаче без авторизации или с невалидным токеном.
     
