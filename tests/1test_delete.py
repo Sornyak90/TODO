@@ -1,7 +1,7 @@
 from tests.conftest import *
 import json
 
-def test_delete_existing_task_success():
+def test_delete_existing_task_success(client, auth_token):
     """
     Тест успешного удаления существующей задачи.
     
@@ -22,13 +22,13 @@ def test_delete_existing_task_success():
     create_response = client.post(
         "/tasks/",
         json=task_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     
     # 2. Удаляем созданную задачу
     delete_response = client.delete(
         f"/tasks/{task_name}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     
     # Проверки ответа на удаление
@@ -39,11 +39,11 @@ def test_delete_existing_task_success():
     # 3. Проверяем, что задача действительно удалена
     get_response = client.get(
         f"/tasks/{task_name}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert get_response.status_code == 404  # Задача не должна больше существовать
    
-def test_delete_unauthorized():
+def test_delete_unauthorized(client, auth_token):
     """
     Тест ошибок авторизации при удалении задачи.
     
@@ -61,7 +61,7 @@ def test_delete_unauthorized():
     create_response = client.post(
         "/tasks/",
         json=task_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     
     # Сценарий 1: DELETE без заголовка Authorization
@@ -79,11 +79,11 @@ def test_delete_unauthorized():
     # (не должна была быть удалена из-за ошибок авторизации)
     get_response = client.get(
         f"/tasks/{task_name}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert get_response.status_code == 200  # Задача доступна (не удалена)
 
-def test_delete_nonexistent_task():
+def test_delete_nonexistent_task(client, auth_token):
     """
     Тест попытки удалить несуществующую задачу.
     
@@ -94,11 +94,11 @@ def test_delete_nonexistent_task():
     
     delete_response = client.delete(
         f"/tasks/{non_existent_name}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert delete_response.status_code == 404  # Ожидаем 404 (не найдено)
 
-def test_delete_already_deleted_task():
+def test_delete_already_deleted_task(client, auth_token):
     """
     Тест попытки удалить уже удаленную задачу.
     
@@ -116,20 +116,20 @@ def test_delete_already_deleted_task():
     create_response = client.post(
         "/tasks/",
         json=task_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert create_response.status_code == 201  # Успешное создание
     
     # 2. Первое удаление (должно быть успешным)
     delete_response = client.delete(
         f"/tasks/{task_name}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert delete_response.status_code == 204  # Успешное удаление
     
     # 3. Второе удаление той же задачи (должно вернуть 404)
     delete_response2 = client.delete(
         f"/tasks/{task_name}",
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert delete_response2.status_code == 404  # Задача уже не существует
