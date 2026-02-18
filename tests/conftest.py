@@ -1,13 +1,13 @@
 import pytest
 from testcontainers.postgres import PostgresContainer
 from fastapi.testclient import TestClient
-from src.auth.config import SECRET_KEY  
 from datetime import datetime, timedelta, timezone
 from jose import jwt
-from src.data.config import settings
-import json
 import random
 import string
+import asyncio
+from sqlalchemy.ext.asyncio import create_async_engine
+from src.data import Base
 
 @pytest.fixture(scope="session")
 def test_data():
@@ -67,11 +67,23 @@ def pg_container():
 @pytest.fixture(scope="session")
 def app(pg_container):
     """Фикстура для приложения"""
-    import src.data.config as config
-    config.settings = config.Settings(database_url=pg_container.get_connection_url())
+    import src.config as config
+    # Создаем URL для asyncpg
+    sync_url = pg_container.get_connection_url()
+    async_url = sync_url.replace('postgresql://', 'postgresql+asyncpg://')
+    
+    # Обновляем настройки
+    config.settings = config.Settings(database_url=async_url)
+    
+    # Создаем таблицы асинхронно
+    async def init_db():
+        from src.data import engine
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    
+    asyncio.run(init_db())
+    
     from src.main import app
-    from src.data.__init__ import Base, engine
-    Base.metadata.create_all(bind=engine)
     yield app
 
 @pytest.fixture(scope="session")
@@ -87,18 +99,18 @@ def auth_token(client,test_data):
     token_data = response.json()
     return token_data["access_token"]
 
-@pytest.fixture(scope="session")
-def expired_token(auth_token):
-    """Создание просроченного токена"""
-    payload = jwt.decode(
-        auth_token, 
-        SECRET_KEY, 
-        algorithms=["HS256"],
-        options={"verify_signature": False}
-    )
-    expired_time = datetime.now(timezone.utc) - timedelta(minutes=5)
-    payload["exp"] = int(expired_time.timestamp())
-    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+# @pytest.fixture(scope="session")
+# def expired_token(auth_token):
+#     """Создание просроченного токена"""
+#     payload = jwt.decode(
+#         auth_token, 
+#         SECRET_KEY, 
+#         algorithms=["HS256"],
+#         options={"verify_signature": False}
+#     )
+#     expired_time = datetime.now(timezone.utc) - timedelta(minutes=5)
+#     payload["exp"] = int(expired_time.timestamp())
+#     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 @pytest.fixture
 def token_list1(auth_token):

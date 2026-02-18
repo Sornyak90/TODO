@@ -21,6 +21,8 @@ dependencies = [
     "twisted>=25.5.0",
     "tzlocal>=5.3.1",
     "testcontainers[postgresql]>=4.14.1",
+    "psycopg2-binary>=2.9.11",
+    "asyncpg>=0.31.0",
 ]
 
 

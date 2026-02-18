@@ -1,5 +1,4 @@
 from tests.conftest import *
-import json
 
 def test_patch_existing_task_success(client,auth_token, test_data):
     """Успешное частичное обновление существующей задачи"""
