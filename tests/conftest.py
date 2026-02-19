@@ -1,13 +1,9 @@
 import pytest
+import sys
 from testcontainers.postgres import PostgresContainer
-from fastapi.testclient import TestClient
-from datetime import datetime, timedelta, timezone
-from jose import jwt
+from httpx import ASGITransport, AsyncClient
 import random
 import string
-import asyncio
-from sqlalchemy.ext.asyncio import create_async_engine
-from src.data import Base
 
 @pytest.fixture(scope="session")
 def test_data():
@@ -64,37 +60,28 @@ def pg_container():
     with PostgresContainer("postgres:16-alpine") as pg:
         yield pg
 
-@pytest.fixture(scope="session")
-def app(pg_container):
-    """Фикстура для приложения"""
+def _async_pg_url(url: str) -> str:
+    return url.replace("psycopg2", "asyncpg")
+
+@pytest.fixture
+async def app(pg_container):
     import src.config as config
-    # Создаем URL для asyncpg
-    sync_url = pg_container.get_connection_url()
-    async_url = sync_url.replace('postgresql://', 'postgresql+asyncpg://')
-    
-    # Обновляем настройки
-    config.settings = config.Settings(database_url=async_url)
-    
-    # Создаем таблицы асинхронно
-    async def init_db():
-        from src.data import engine
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-    
-    asyncio.run(init_db())
-    
-    from src.main import app
-    yield app
+    config.settings = config.Settings(database_url=_async_pg_url(pg_container.get_connection_url()))
+    from src.data import Base, engine
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    from src.main import app as fastapi_app
+    yield fastapi_app
+    await engine.dispose()
 
-@pytest.fixture(scope="session")
-def client(app):
-    """Фикстура для тестового клиента"""
-    return TestClient(app)
+@pytest.fixture
+async def client(app):
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        yield ac
 
-@pytest.fixture(scope="session")
-def auth_token(client,test_data):
-    """Получение токена авторизации"""
-    response = client.post("/login", data=test_data["login"])
+@pytest.fixture
+async def auth_token(client, test_data):
+    response = await client.post("/login/", data=test_data["login"])
     assert response.status_code == 200, f"Login failed: {response.text}"
     token_data = response.json()
     return token_data["access_token"]

@@ -1,60 +1,23 @@
-from typing import List, Optional, Tuple
-from model.tasks import Task, Filtr
-import data.tasks as service
+from typing import List, Optional
+from model.tasks import Task, TaskResponse, Filtr
+import data.tasks as data_tasks
 
 
-def create(task: Task) -> Task | None:
-    """Создает новую задачу и возвращает созданную задачу.
-
-    Args:
-        task (Task): Объект задачи для сохранения.
-
-    Returns:
-        Optional[Task]: Новая созданная задача или None, если создание невозможно.
-    """
-    return service.create(task)
+async def create(task: Task) -> TaskResponse | None:
+    return await data_tasks.create(task)
 
 
-def get_all(filtr: Filtr, offset: int, page_size: int) -> Optional[List[Task]]:
-    """Получает список всех существующих задач.
-
-    Returns:
-        Optional[List[Task]]: Список всех задач или None, если нет задач.
-    """
-    return service.get_all(filtr, offset, page_size)
-
-def get_one(name: str) -> Optional[Task]:
-    """Получает отдельную задачу по указанному названию.
-
-    Args:
-        name (str): Название задачи.
-
-    Returns:
-        Optional[Task]: Найденная задача или None, если задача не найдена.
-    """
-    return service.get_one(name)
+async def get_all(filtr: Filtr, offset: int, page_size: int) -> Optional[List[TaskResponse]]:
+    return await data_tasks.get_all(filtr, offset, page_size)
 
 
-def update(task: Task) -> Optional[Task]:
-    """Обновляет существующий объект задачи.
-
-    Args:
-        task (Task): Объект задачи с новыми значениями полей.
-
-    Returns:
-        Optional[Task]: Обновленная задача или None, если обновление невозможно.
-    """
-    return service.update(task)
+async def get_one(name: str) -> Optional[TaskResponse]:
+    return await data_tasks.get_one(name)
 
 
-def delete(name: str):
-    """Удаляет задачу по указанному названию.
+async def update(task: Task) -> Optional[TaskResponse]:
+    return await data_tasks.update(task)
 
-    Args:
-        name (str): Название задачи для удаления.
 
-    Returns:
-        bool: True, если задача была успешно удалена, иначе False.
-    """
-    return service.delete(name)
-
+async def delete(name: str) -> bool:
+    return await data_tasks.delete(name)
