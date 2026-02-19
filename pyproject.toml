@@ -8,7 +8,6 @@ dependencies = [
     "fastapi[standard]>=0.120.0",
     "sqlalchemy>=2.0.44",
     "pydantic-settings>=2.11.0",
-    "psycopg[binary]>=3.2.12",
     "python-jose>=3.5.0",
     "uvicorn",
     "httpx>=0.28.1",
@@ -21,8 +20,11 @@ dependencies = [
     "twisted>=25.5.0",
     "tzlocal>=5.3.1",
     "testcontainers[postgresql]>=4.14.1",
-    "psycopg2-binary>=2.9.11",
     "asyncpg>=0.31.0",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = [".", "src"]
+asyncio_mode = "auto"
 
 

@@ -1,124 +1,63 @@
 from model.tasks import Task, TaskResponse, Filtr
 from error import Duplicate, Missing
-from . import Session, User
+from . import AsyncSessionLocal, User
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import select
 from fastapi import HTTPException
-from model.tasks import Filtr
-from typing import Tuple
-
-import math
 
 
-def create(task: Task) -> TaskResponse | None:
-    # """
-    # Добавляет новую задачу в базу данных.
-    
-    # Args:
-    #     task (Task): Задача для добавления.
-        
-    # Raises:
-    #     Duplicate: Если задача с таким именем уже существует.
-        
-    # Returns:
-    #     Task | None: Новая созданная задача или None, если возникла ошибка.
-    # """
+async def create(task: Task) -> TaskResponse | None:
     try:
-        with Session() as session:
-            task = User(name=task.name, status=task.status)
-            session.add(task)
-            session.commit()
-            session.refresh(task)
-        return TaskResponse(id=task.id, name=task.name, status=task.status)
+        async with AsyncSessionLocal() as session:
+            row = User(name=task.name, status=task.status)
+            session.add(row)
+            await session.commit()
+            await session.refresh(row)
+            return TaskResponse(id=row.id, name=row.name, status=row.status)
     except IntegrityError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
-def get_one(name: str) -> Task | None:
-    # """
-    # Получает одну задачу по имени.
-    
-    # Args:
-    #     name (str): Имя задачи.
-        
-    # Raises:
-    #     Missing: Если задача с данным именем не найдена.
-        
-    # Returns:
-    #     Task | None: Найденная задача или None, если произошла ошибка.
-    # """
-    with Session() as session:
-        task = session.query(User).filter_by(name=name).first()
-        return task
-    
 
-def get_all(filtr: Filtr, offset: int, page_size: int) -> list[Task]:
-    """
-    Возвращает список всех задач с фильтрацией по статусу.
-    
-    Args:
-        filtr (Filtr): Фильтр для отбора задач (0 - все, 1 - выполнено, 2 - невыполнено)
-    
-    Returns:
-        list[Task]: Список объектов Task.
-    """
-    with Session() as session:
-        # Создаем базовый запрос
-        query = session.query(User) 
+async def get_one(name: str) -> TaskResponse | None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.name == name))
+        row = result.scalar_one_or_none()
+        if row is None:
+            return None
+        return TaskResponse(id=row.id, name=row.name, status=row.status)
+
+
+async def get_all(filtr: Filtr, offset: int, page_size: int) -> list[TaskResponse]:
+    async with AsyncSessionLocal() as session:
+        q = select(User)
         if filtr == Filtr.true:
-            query = query.filter(User.status == True)
+            q = q.where(User.status == True)
         elif filtr == Filtr.false:
-            query = query.filter(User.status == False)
-        
-        tasks = query.offset(offset).limit(page_size).all()
-        
-        return tasks
+            q = q.where(User.status == False)
+        q = q.offset(offset).limit(page_size)
+        result = await session.execute(q)
+        rows = result.scalars().all()
+        return [TaskResponse(id=r.id, name=r.name, status=r.status) for r in rows]
 
-def delete(name: str):
-    # """
-    # Удаляет задачу по её имени.
-    
-    # Args:
-    #     name (str): Имя удаляемой задачи.
-        
-    # Raises:
-    #     Missing: Если задача с указанным именем не найдена.
-        
-    # Returns:
-    #     bool: Результат операции удаления.
-    # """
-     with Session() as session:
-        task_to_delete = session.query(User).filter_by(name=name).first()
-        
-        if task_to_delete:
-            session.delete(task_to_delete)
-            session.commit()
-            return True
-        else:
+
+async def delete(name: str) -> bool:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.name == name))
+        row = result.scalar_one_or_none()
+        if row is None:
             return False
-    
+        session.delete(row)
+        await session.commit()
+        return True
 
-def update(task: Task) -> Task | None:
-    # """
-    # Обновляет статус задачи.
-    
-    # Args:
-    #     task (Task): Задача с обновленным статусом.
-        
-    # Raises:
-    #     Missing: Если задача с указанным именем не найдена.
-        
-    # Returns:
-    #     Task | None: Обновленная задача или None, если возникла ошибка.
-    # """
-    session = Session()
-    try:
-        update_task = session.query(User).filter_by(name=task.name).first()
-        
-        if update_task:
-            update_task.status = task.status
-            session.commit()
-            session.refresh(update_task)
-            return update_task
-        else:
+
+async def update(task: Task) -> TaskResponse | None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(select(User).where(User.name == task.name))
+        row = result.scalar_one_or_none()
+        if row is None:
             raise Missing(f"Задача с именем '{task.name}' не найдена")
-    finally:
-        session.close()
+        row.status = task.status
+        await session.commit()
+        await session.refresh(row)
+        return TaskResponse(id=row.id, name=row.name, status=row.status)
