@@ -51,6 +51,7 @@ async def update(task: Task, current_user: User = Depends(get_current_user)) -> 
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
 
+
 @router.delete("/{name}", status_code=204)
 async def delete(name: str, current_user: User = Depends(get_current_user)):
     try:
