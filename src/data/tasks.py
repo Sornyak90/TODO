@@ -46,8 +46,10 @@ async def delete(name: str) -> bool:
         row = result.scalar_one_or_none()
         if row is None:
             return False
-        session.delete(row)
+        await session.delete(row)
+        await session.flush() 
         await session.commit()
+    
         return True
 
 

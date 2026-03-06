@@ -1,50 +1,51 @@
 from tests.conftest import *
+import uuid
 
+async def test_patch_existing_task_success(client, auth_token):
+    unique_id = str(uuid.uuid4())[:8]
+    task_name = f"Task_To_Update_{unique_id}"
+    task_data = {
+        "name": task_name,
+        "status": False,
+    }
+    task_update = {
+        "name": task_name,
+        "status": True,
+    }
 
-# async def test_patch_existing_task_success(client, auth_token):
-#     task_name = f"Task_To_Update_{random.randint(1000, 9999)}"
-#     task_data = {
-#         "name": task_name,
-#         "status": False,
-#     }
-#     task_update = {
-#         "name": task_name,
-#         "status": True,
-#     }
-
-#     create_response = await client.post(
-#         "/tasks/",
-#         json=task_data,
-#         headers={"Authorization": f"Bearer {auth_token}"}
-#     )
-#     assert create_response.status_code == 201
-#     original_task = create_response.json()
-#     task_id = original_task.get("id")
-#     patch_response = await client.patch(
-#         "/tasks/",
-#         json=task_update,
-#         headers={"Authorization": f"Bearer {auth_token}"}
-#     )
-#     assert patch_response.status_code == 200
-#     updated_task = patch_response.json()
+    create_response = await client.post(
+        "/tasks/",
+        json=task_data,
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert create_response.status_code == 201
+    original_task = create_response.json()
+    task_id = original_task.get("id")
+    patch_response = await client.patch(
+        "/tasks/",
+        json=task_update,
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert patch_response.status_code == 200
+    updated_task = patch_response.json()
     
-#     assert updated_task["status"] == True  
-#     assert updated_task["name"] == task_data["name"]  
+    assert updated_task["status"] == True  
+    assert updated_task["name"] == task_data["name"]  
     
-#     get_response = await client.get(
-#         f"/tasks/{task_update["name"]}",
-#         headers={"Authorization": f"Bearer {auth_token}"}
-#     )
-#     assert get_response.status_code == 200
-#     fetched_task = get_response.json()
-#     assert fetched_task["status"] == True
-#     assert fetched_task["id"] == task_id  #  Проверяем что ID не изменился
+    get_response = await client.get(
+        f"/tasks/{task_update["name"]}",
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert get_response.status_code == 200
+    fetched_task = get_response.json()
+    assert fetched_task["status"] == True
+    assert fetched_task["id"] == task_id  #  Проверяем что ID не изменился
 
-#     delete_response = await client.delete(
-#         f"/tasks/{task_update["name"]}",  #  Используем имя для удаления
-#         headers={"Authorization": f"Bearer {auth_token}"}
-#     )
-#     assert delete_response.status_code == 204
+    delete_response = await client.delete(
+        f"/tasks/{task_update["name"]}",  #  Используем имя для удаления
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert delete_response.status_code == 204
 
 # async def test_patch_unauthorized(client, auth_token, test_data):
 #     """Ошибки авторизации при обновлении"""
@@ -64,7 +65,7 @@ from tests.conftest import *
     
 
 # async def test_patch_nonexistent_task(client, auth_token):
-#     """Попытка обновить несуществующую задачу"""
+#     """Попыткprint(patch_response.json())а обновить несуществующую задачу"""
 #     # 2. Пытаемся обновить несуществующую задачу
     
 #     update_data = {
@@ -83,30 +84,37 @@ from tests.conftest import *
 
 async def test_patch_already_deleted_task(client, auth_token):
     """Попытка обновить уже удаленную задачу"""
-    task_name = f"Task_To_Update_{random.randint(1000, 9999)}"
+  
+    print("xуй1")
+    unique_id = str(uuid.uuid4())[:8]
+    print("xуй2")
+    task_name = f"Task_To_Update_{unique_id}"
+    print("xуй3")
     task_data = {
         "name": task_name,
         "status": False,
     }
-    print(task_data)
+    print("xуй4")
     create_response = await client.post(
         "/tasks/",
         json=task_data,
         headers={"Authorization": f"Bearer {auth_token}"}
     )
+    print("xуй5")
     assert create_response.status_code == 201
-   
+    print("xуй6")
     delete_response = await client.delete(
         f"/tasks/{task_data["name"]}",  #  Используем имя для удаления
         headers={"Authorization": f"Bearer {auth_token}"}
     )
+    print("xуй7")
     assert delete_response.status_code == 204
-    
+    print("xуй8")
     patch_response = await client.patch(
         "/tasks/",
         json=task_data, 
         headers={"Authorization": f"Bearer {auth_token}"}
     )
-    
-    print(patch_response.json())
+    print("xуй9")
     assert patch_response.status_code == 404  #  Ожидаем 404 после удаления
+    print("xуй10")

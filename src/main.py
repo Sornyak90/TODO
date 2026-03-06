@@ -5,7 +5,7 @@ from auth.auth_jwt import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 from data import Base, engine
 from contextlib import asynccontextmanager
-from src.config import settings
+from config import settings
 import asyncio
 
 @asynccontextmanager
