@@ -5,53 +5,53 @@ from httpx import ASGITransport, AsyncClient
 import random
 import string
 
-@pytest.fixture(scope="session")
-def test_data():
-    """Единая фикстура со всеми тестовыми данными"""
+# @pytest.fixture(scope="session")
+# def test_data():
+#     """Единая фикстура со всеми тестовыми данными"""
     
-    # Данные для логина
-    login_data = {
-        "username": "admin",  
-        "password": "admin"   
-    }
+#     # Данные для логина
+#     login_data = {
+#         "username": "admin",  
+#         "password": "admin"   
+#     }
     
-    # Валидные данные задач
-    task_valid = {
-        "name": ''.join(random.choices(string.ascii_letters, k=5)),
-        "status": False,
-    }
+#     # Валидные данные задач
+#     task_valid = {
+#         "name": ''.join(random.choices(string.ascii_letters, k=5)),
+#         "status": False,
+#     }
     
-    # Невалидные данные задач
-    task_invalid_1 = {
-        "name": "",
-        "status": "",
-    }
+#     # Невалидные данные задач
+#     task_invalid_1 = {
+#         "name": "",
+#         "status": "",
+#     }
     
-    task_invalid_2 = {
-        "name": 333,
-        "status": "333",
-    }
+#     task_invalid_2 = {
+#         "name": 333,
+#         "status": "333",
+#     }
     
-    # Данные для обновления
-    task_name = "Task_To_Update"
-    task_for_update = {
-        "name": task_name,
-        "status": False,
-    }
+#     # Данные для обновления
+#     task_name = "Task_To_Update"
+#     task_for_update = {
+#         "name": task_name,
+#         "status": False,
+#     }
     
-    task_updated = {
-        "name": task_name,
-        "status": True,
-    }
+#     task_updated = {
+#         "name": task_name,
+#         "status": True,
+#     }
     
-    return {
-        "login": login_data,
-        "task_valid": task_valid,
-        "task_invalid_list": [task_invalid_1, task_invalid_2],
-        "task_for_update": task_for_update,
-        "task_updated": task_updated,
-        "task_name": task_name
-    }
+#     return {
+#         "login": login_data,
+#         "task_valid": task_valid,
+#         "task_invalid_list": [task_invalid_1, task_invalid_2],
+#         "task_for_update": task_for_update,
+#         "task_updated": task_updated,
+#         "task_name": task_name
+#     }
 
 # === ФИКСТУРЫ ===
 @pytest.fixture(scope="session")
@@ -80,8 +80,8 @@ async def client(app):
         yield ac
 
 @pytest.fixture
-async def auth_token(client, test_data):
-    response = await client.post("/login/", data=test_data["login"])
+async def auth_token(client):
+    response = await client.post("/login/", data={"username": "admin",  "password": "admin"})
     assert response.status_code == 200, f"Login failed: {response.text}"
     token_data = response.json()
     return token_data["access_token"]

@@ -45,7 +45,7 @@ async def get_one(name: str, current_user: User = Depends(get_current_user)) -> 
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.patch("/")
-async def update(task: Task, current_user: User = Depends(get_current_user)) -> Task | None:
+async def update(task: Task, current_user: User = Depends(get_current_user)) -> TaskResponse | None:
     try:
         return await service.update(task)
     except Missing as e:

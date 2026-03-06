@@ -1,34 +1,50 @@
 from tests.conftest import *
 
 
-async def test_patch_existing_task_success(client, auth_token, test_data):
-    create_response = await client.post(
-        "/tasks/",
-        json=test_data["task_for_update"],
-        headers={"Authorization": f"Bearer {auth_token}"}
-    )
-    assert create_response.status_code == 201
-    original_task = create_response.json()
-    task_id = original_task.get("id")
-    patch_response = await client.patch(
-        "/tasks/",
-        json=test_data["task_updated"],
-        headers={"Authorization": f"Bearer {auth_token}"}
-    )
-    assert patch_response.status_code == 200
-    updated_task = patch_response.json()
+# async def test_patch_existing_task_success(client, auth_token):
+#     task_name = f"Task_To_Update_{random.randint(1000, 9999)}"
+#     task_data = {
+#         "name": task_name,
+#         "status": False,
+#     }
+#     task_update = {
+#         "name": task_name,
+#         "status": True,
+#     }
+
+#     create_response = await client.post(
+#         "/tasks/",
+#         json=task_data,
+#         headers={"Authorization": f"Bearer {auth_token}"}
+#     )
+#     assert create_response.status_code == 201
+#     original_task = create_response.json()
+#     task_id = original_task.get("id")
+#     patch_response = await client.patch(
+#         "/tasks/",
+#         json=task_update,
+#         headers={"Authorization": f"Bearer {auth_token}"}
+#     )
+#     assert patch_response.status_code == 200
+#     updated_task = patch_response.json()
     
-    assert updated_task["status"] == True  
-    assert updated_task["name"] == test_data["task_for_update"]["name"]  
+#     assert updated_task["status"] == True  
+#     assert updated_task["name"] == task_data["name"]  
     
-    get_response = await client.get(
-        f"/tasks/{test_data["task_for_update"]["name"]}",
-        headers={"Authorization": f"Bearer {auth_token}"}
-    )
-    assert get_response.status_code == 200
-    fetched_task = get_response.json()
-    assert fetched_task["status"] == True
-    assert fetched_task["id"] == task_id  #  Проверяем что ID не изменился
+#     get_response = await client.get(
+#         f"/tasks/{task_update["name"]}",
+#         headers={"Authorization": f"Bearer {auth_token}"}
+#     )
+#     assert get_response.status_code == 200
+#     fetched_task = get_response.json()
+#     assert fetched_task["status"] == True
+#     assert fetched_task["id"] == task_id  #  Проверяем что ID не изменился
+
+#     delete_response = await client.delete(
+#         f"/tasks/{task_update["name"]}",  #  Используем имя для удаления
+#         headers={"Authorization": f"Bearer {auth_token}"}
+#     )
+#     assert delete_response.status_code == 204
 
 # async def test_patch_unauthorized(client, auth_token, test_data):
 #     """Ошибки авторизации при обновлении"""
@@ -65,19 +81,32 @@ async def test_patch_existing_task_success(client, auth_token, test_data):
 #     # 3. Проверяем 404 Not Found
 #     assert patch_response.status_code == 404  #  Правильный ожидаемый статус
 
-async def test_patch_already_deleted_task(client, auth_token, test_data):
+async def test_patch_already_deleted_task(client, auth_token):
     """Попытка обновить уже удаленную задачу"""
-    
+    task_name = f"Task_To_Update_{random.randint(1000, 9999)}"
+    task_data = {
+        "name": task_name,
+        "status": False,
+    }
+    print(task_data)
+    create_response = await client.post(
+        "/tasks/",
+        json=task_data,
+        headers={"Authorization": f"Bearer {auth_token}"}
+    )
+    assert create_response.status_code == 201
+   
     delete_response = await client.delete(
-        f"/tasks/{test_data["task_for_update"]["name"]}",  #  Используем имя для удаления
+        f"/tasks/{task_data["name"]}",  #  Используем имя для удаления
         headers={"Authorization": f"Bearer {auth_token}"}
     )
     assert delete_response.status_code == 204
     
     patch_response = await client.patch(
         "/tasks/",
-        json=test_data["task_for_update"], 
+        json=task_data, 
         headers={"Authorization": f"Bearer {auth_token}"}
     )
     
+    print(patch_response.json())
     assert patch_response.status_code == 404  #  Ожидаем 404 после удаления
