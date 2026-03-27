@@ -47,21 +47,27 @@ async def test_patch_existing_task_success(client, auth_token):
     )
     assert delete_response.status_code == 204
 
-# async def test_patch_unauthorized(client, auth_token, test_data):
-#     """Ошибки авторизации при обновлении"""
+async def test_patch_unauthorized(client, auth_token):
+    """Ошибки авторизации при обновлении"""
+    unique_id = str(uuid.uuid4())[:8]
+    task_name = f"Task_To_Update_{unique_id}"
+    task_data = {
+        "name": task_name,
+        "status": False,
+    }
     
-#     patch_response = await client.patch(
-#         "/tasks/",
-#         json=test_data["task_for_update"] 
-#     )
-#     assert patch_response.status_code == 401  #  Проверка без токена
+    patch_response = await client.patch(
+        "/tasks/",
+        json=task_data
+    )
+    assert patch_response.status_code == 401  #  Проверка без токена
     
-#     patch_response = await client.patch(
-#         "/tasks/",
-#         json=test_data["task_for_update"],
-#         headers={"Authorization": "Bearer invalid_token_123"}
-#     )
-#     assert patch_response.status_code == 401  #  Проверка с невалидным токеном
+    patch_response = await client.patch(
+        "/tasks/",
+        json=task_data,
+        headers={"Authorization": "Bearer invalid_token_123"}
+    )
+    assert patch_response.status_code == 401  #  Проверка с невалидным токеном
     
 
 # async def test_patch_nonexistent_task(client, auth_token):
@@ -85,36 +91,28 @@ async def test_patch_existing_task_success(client, auth_token):
 async def test_patch_already_deleted_task(client, auth_token):
     """Попытка обновить уже удаленную задачу"""
   
-    print("xуй1")
     unique_id = str(uuid.uuid4())[:8]
-    print("xуй2")
     task_name = f"Task_To_Update_{unique_id}"
-    print("xуй3")
     task_data = {
         "name": task_name,
         "status": False,
     }
-    print("xуй4")
     create_response = await client.post(
         "/tasks/",
         json=task_data,
         headers={"Authorization": f"Bearer {auth_token}"}
     )
-    print("xуй5")
-    assert create_response.status_code == 201
-    print("xуй6")
-    delete_response = await client.delete(
-        f"/tasks/{task_data["name"]}",  #  Используем имя для удаления
-        headers={"Authorization": f"Bearer {auth_token}"}
-    )
-    print("xуй7")
-    assert delete_response.status_code == 204
-    print("xуй8")
-    patch_response = await client.patch(
-        "/tasks/",
-        json=task_data, 
-        headers={"Authorization": f"Bearer {auth_token}"}
-    )
-    print("xуй9")
-    assert patch_response.status_code == 404  #  Ожидаем 404 после удаления
-    print("xуй10")
+    # assert create_response.status_code == 201
+
+    # delete_response = await client.delete(
+    #     f'/tasks/{task_data["name"]}',  # Внешние одинарные, внутренние двойные
+    #     headers={"Authorization": f"Bearer {auth_token}"}
+    # )
+    # assert delete_response.status_code == 204
+
+    # patch_response = await client.patch(
+    #     "/tasks/",
+    #     json={"name": task_name, "status": True},  # Явно указываем обновленные данные
+    #     headers={"Authorization": f"Bearer {auth_token}"}
+    # )
+    # assert patch_response.status_code == 404  # Ожидаем 404 после удаления

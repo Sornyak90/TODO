@@ -54,7 +54,7 @@ import string
 #     }
 
 # === ФИКСТУРЫ ===
-@pytest.fixture(scope="session")
+@pytest.fixture()
 def pg_container():
     """Фикстура для PostgreSQL контейнера"""
     with PostgresContainer("postgres:16-alpine") as pg:
@@ -63,15 +63,26 @@ def pg_container():
 def _async_pg_url(url: str) -> str:
     return url.replace("psycopg2", "asyncpg")
 
+from src.data import Base
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+
 @pytest.fixture
 async def app(pg_container):
-    import src.config as config
-    config.settings = config.Settings(database_url=_async_pg_url(pg_container.get_connection_url()))
-    from src.data import Base, engine
+    from src.config import Settings
+    from src.data import Base
+
+    settings = Settings(database_url=_async_pg_url(pg_container.get_connection_url()))
+    engine = create_async_engine(settings.database_url)
+    async_session = async_sessionmaker(engine, expire_on_commit=False)
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    # Передай engine/session в приложение или сервисы, если нужно
+
     from src.main import app as fastapi_app
     yield fastapi_app
+
     await engine.dispose()
 
 @pytest.fixture
