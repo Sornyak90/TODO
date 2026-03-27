@@ -3,17 +3,18 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, Integer, String, Boolean
 from config import settings
 
-# Используем асинхронный движок
-engine = create_async_engine(
-    url=settings.database_url.replace('postgresql://', 'postgresql+asyncpg://'),
-    echo=False
-)
 
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
-)
+def get_session_engine():
+    # Используем асинхронный движок
+    engine = create_async_engine(
+        url=settings.database_url.replace('postgresql://', 'postgresql+asyncpg://'),
+        echo=False
+    )
+    return async_sessionmaker(
+        engine,
+        class_=AsyncSession,
+        expire_on_commit=False
+    ), engine
 
 Base = declarative_base()
 

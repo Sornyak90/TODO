@@ -1,12 +1,13 @@
 from model.tasks import Task, TaskResponse, Filtr
 from error import Duplicate, Missing
-from . import AsyncSessionLocal, User
+from . import get_session_engine, User
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
 from fastapi import HTTPException
 
 
 async def create(task: Task) -> TaskResponse | None:
+    AsyncSessionLocal, _ = get_session_engine()
     try:
         async with AsyncSessionLocal() as session:
             row = User(name=task.name, status=task.status)
@@ -19,6 +20,7 @@ async def create(task: Task) -> TaskResponse | None:
 
 
 async def get_one(name: str) -> TaskResponse | None:
+    AsyncSessionLocal, _ = get_session_engine()
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.name == name))
         row = result.scalar_one_or_none()
@@ -28,6 +30,7 @@ async def get_one(name: str) -> TaskResponse | None:
 
 
 async def get_all(filtr: Filtr, offset: int, page_size: int) -> list[TaskResponse]:
+    AsyncSessionLocal, _ = get_session_engine()
     async with AsyncSessionLocal() as session:
         q = select(User)
         if filtr == Filtr.true:
@@ -41,19 +44,21 @@ async def get_all(filtr: Filtr, offset: int, page_size: int) -> list[TaskRespons
 
 
 async def delete(name: str) -> bool:
+    AsyncSessionLocal, _ = get_session_engine()
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.name == name))
         row = result.scalar_one_or_none()
         if row is None:
             return False
         await session.delete(row)
-        await session.flush() 
+        await session.flush()
         await session.commit()
-    
+
         return True
 
 
 async def update(task: Task) -> TaskResponse | None:
+    AsyncSessionLocal, _ = get_session_engine()
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(User).where(User.name == task.name))
         row = result.scalar_one_or_none()
