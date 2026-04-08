@@ -5,54 +5,8 @@ from httpx import ASGITransport, AsyncClient
 import random
 import string
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-
-# @pytest.fixture(scope="session")
-# def test_data():
-#     """Единая фикстура со всеми тестовыми данными"""
-
-#     # Данные для логина
-#     login_data = {
-#         "username": "admin",
-#         "password": "admin"
-#     }
-
-#     # Валидные данные задач
-#     task_valid = {
-#         "name": ''.join(random.choices(string.ascii_letters, k=5)),
-#         "status": False,
-#     }
-
-#     # Невалидные данные задач
-#     task_invalid_1 = {
-#         "name": "",
-#         "status": "",
-#     }
-
-#     task_invalid_2 = {
-#         "name": 333,
-#         "status": "333",
-#     }
-
-#     # Данные для обновления
-#     task_name = "Task_To_Update"
-#     task_for_update = {
-#         "name": task_name,
-#         "status": False,
-#     }
-
-#     task_updated = {
-#         "name": task_name,
-#         "status": True,
-#     }
-
-#     return {
-#         "login": login_data,
-#         "task_valid": task_valid,
-#         "task_invalid_list": [task_invalid_1, task_invalid_2],
-#         "task_for_update": task_for_update,
-#         "task_updated": task_updated,
-#         "task_name": task_name
-#     }
+from auth.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from datetime import datetime, timedelta, timezone
 
 # === ФИКСТУРЫ ===
 @pytest.fixture(scope="session")
@@ -73,8 +27,6 @@ async def app(pg_container):
     from data import Base
     from main import app as fastapi_app
 
-    print(f"{url=}")
-    print(f"{config.settings.database_url=}")
     engine = create_async_engine(config.settings.database_url)
     async_session = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -99,18 +51,20 @@ async def auth_token(client):
     token_data = response.json()
     return token_data["access_token"]
 
-# @pytest.fixture(scope="session")
-# def expired_token(auth_token):
-#     """Создание просроченного токена"""
-#     payload = jwt.decode(
-#         auth_token,
-#         SECRET_KEY,
-#         algorithms=["HS256"],
-#         options={"verify_signature": False}
-#     )
-#     expired_time = datetime.now(timezone.utc) - timedelta(minutes=5)
-#     payload["exp"] = int(expired_time.timestamp())
-#     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+@pytest.fixture()
+def expired_token(auth_token):
+    import jwt
+
+    """Создание просроченного токена"""
+    payload = jwt.decode(
+        auth_token,
+        SECRET_KEY,
+        algorithms=["HS256"],
+        options={"verify_signature": False}
+    )
+    expired_time = datetime.now(timezone.utc) - timedelta(minutes=5)
+    payload["exp"] = int(expired_time.timestamp())
+    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 @pytest.fixture
 def token_list1(auth_token):
