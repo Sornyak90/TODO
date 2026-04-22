@@ -6,7 +6,7 @@ class Task(BaseModel):
     name: str
     status: bool
 
-class Filtr(StrEnum):
+class Status(StrEnum):
    default = "0"
    true = "1"
    false = "2"

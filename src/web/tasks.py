@@ -4,7 +4,7 @@ from fastapi.security import (
     HTTPBasicCredentials, 
     OAuth2PasswordRequestForm
 )
-from model.tasks import Task, TaskResponse, User, Filtr
+from model.tasks import Task, TaskResponse, User, Status
 import data.tasks as service
 from error import Duplicate, Missing
 from typing import Annotated, Tuple
@@ -19,18 +19,40 @@ async def create(task: Task, current_user: User = Depends(get_current_user)) -> 
     return await service.create(task)
     
 @router.get("/")
-async def get_all(filtr: Filtr = 0, offset: int = 0, page_size: int = 5, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
+async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
     try:
-        if int(filtr.value) > 2:
+        if int(status.value) > 2:
             raise HTTPException(
                 status_code=422,
                 detail=[{
-                    "loc": ["query", "filtr"],
-                    "msg": "Значение filtr должно быть не больше 2",
+                    "loc": ["query", "status"],
+                    "msg": "Значение status должно быть не больше 2",
                     "type": "value_error"
                 }]
             )
-        return await service.get_all(filtr, offset, page_size)
+         # Проверка offset
+        if offset < 0:
+            raise HTTPException(
+                status_code=422,
+                detail=[{
+                    "loc": ["query", "offset"],
+                    "msg": "Значение offset не может быть отрицательным",
+                    "type": "value_error"
+                }]
+            )
+        
+        # Проверка page_size
+        if page_size <= 0:
+            raise HTTPException(
+                status_code=422,
+                detail=[{
+                    "loc": ["query", "page_size"],
+                    "msg": "Значение page_size должно быть больше 0",
+                    "type": "value_error"
+                }]
+            )
+            
+        return await service.get_all(status, offset, page_size)
     except Missing as e:
         raise HTTPException(status_code=422, detail=e.msg)
 

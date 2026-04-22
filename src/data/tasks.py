@@ -1,4 +1,4 @@
-from model.tasks import Task, TaskResponse, Filtr
+from model.tasks import Task, TaskResponse, Status
 from error import Duplicate, Missing
 from . import get_session_engine, User
 from sqlalchemy.exc import IntegrityError
@@ -29,13 +29,13 @@ async def get_one(name: str) -> TaskResponse | None:
         return TaskResponse(id=row.id, name=row.name, status=row.status)
 
 
-async def get_all(filtr: Filtr, offset: int, page_size: int) -> list[TaskResponse]:
+async def get_all(status: Status, offset: int, page_size: int) -> list[TaskResponse]:
     AsyncSessionLocal, _ = get_session_engine()
     async with AsyncSessionLocal() as session:
         q = select(User)
-        if filtr == Filtr.true:
+        if status == Status.true:
             q = q.where(User.status == True)
-        elif filtr == Filtr.false:
+        elif status == Status.false:
             q = q.where(User.status == False)
         q = q.offset(offset).limit(page_size)
         result = await session.execute(q)

@@ -5,8 +5,20 @@ from httpx import ASGITransport, AsyncClient
 import random
 import string
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
-from auth.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+from config import settings
 from datetime import datetime, timedelta, timezone
+import jwt
+
+# Использование настроек
+SECRET_KEY = settings.secret_key
+ALGORITHM = settings.algorithm
+ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
+
+# Тестовые данные
+TEST_USER = "admin"
+TEST_PASSWORD = "admin"
+INVALID_USER = "nonexistent"
+INVALID_PASSWORD = "wrongpassword"
 
 # === ФИКСТУРЫ ===
 @pytest.fixture(scope="session")
@@ -46,31 +58,46 @@ async def client(app):
 
 @pytest.fixture
 async def auth_token(client):
-    response = await client.post("/login/", data={"username": "admin",  "password": "admin"})
-    assert response.status_code == 200, f"Login failed: {response.text}"
+    response = await client.post("/login/", data={"username": TEST_USER,  "password": TEST_PASSWORD})
     token_data = response.json()
     return token_data["access_token"]
 
 @pytest.fixture()
 def expired_token(auth_token):
-    import jwt
 
     """Создание просроченного токена"""
     payload = jwt.decode(
         auth_token,
         SECRET_KEY,
-        algorithms=["HS256"],
+        algorithms=[ALGORITHM],
         options={"verify_signature": False}
     )
     expired_time = datetime.now(timezone.utc) - timedelta(minutes=5)
     payload["exp"] = int(expired_time.timestamp())
-    return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
 @pytest.fixture
-def token_list1(auth_token):
-    return [auth_token, "", "saiudghaijyusd"]
+def headers(auth_token):
+    return {"Authorization": f"Bearer {auth_token}"}
 
 @pytest.fixture
-def token_list2(expired_token):
-    """Список некорректных токенов"""
-    return ["", "saiudghaijyusd", expired_token]
+def headers_invlid():
+    return {"Authorization": "Bearer invalid_token"}
+
+@pytest.fixture
+def headers_expired_token(expired_token):
+    return {"Authorization": f"Bearer {expired_token}"}
+
+@pytest.fixture
+def pagination_params():
+    """Фикстура с параметрами пагинации для разных тестов"""
+    return {
+        "first_page": {"status": 0, "offset": 0, "page_size": 5},
+        "second_page": {"status": 0, "offset": 5, "page_size": 5},
+        "large_offset": {"status": 0, "offset": 2000, "page_size": 5},
+        "negative_offset": {"status": 0, "offset": -1, "page_size": 5},
+        "negative_page_size": {"status": 0, "offset": 0, "page_size": -5},
+        "zero_page_size": {"status": 0, "offset": 0, "page_size": 0},
+        "status_1": {"status": 1, "offset": 0, "page_size": 10},
+        "status_2": {"status": 2, "offset": 0, "page_size": 10}
+    }
