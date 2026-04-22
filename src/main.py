@@ -1,20 +1,25 @@
 from fastapi import FastAPI
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import asyncio
+
 from web import tasks
 from auth.auth_jwt import router as auth_router
-from fastapi.middleware.cors import CORSMiddleware
-from data import Base, get_session_engine
-from contextlib import asynccontextmanager
 from config import settings
-import asyncio
+from data import Base, get_session_engine
+from data.crud import add_fake_users
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(settings)
-    _, engine = get_session_engine()
+    session_maker, engine = get_session_engine()
     # Асинхронное создание таблиц
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+        
+    await add_fake_users(session_maker)
+
     yield
     # Закрываем соединения при завершении
     await engine.dispose()

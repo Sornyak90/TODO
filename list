@@ -1,5 +1,2 @@
 
-- сделать один центр конфиг auth/config.py чтобы pydetic setting
-- изолировать тесты от базы "username": "johndoe", создать отдельно табл для юзеров для тестов
-            "password": "password123"
 

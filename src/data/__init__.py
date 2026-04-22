@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Boolean
 from config import settings
 
 
+
 def get_session_engine():
     # Используем асинхронный движок
     engine = create_async_engine(
@@ -24,3 +25,9 @@ class User(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     name = Column(String, unique=True)
     status = Column(Boolean)
+
+class fake_db(Base):
+    __tablename__ = 'fake_db'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, unique=True)
+    password = Column(String)
