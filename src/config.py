@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
     
     # Database
-    database_url: str = "postgresql://postgres:postgres@localhost:5432/postgres"
+    database_url: str 
 
     # Auth
     secret_key: str
