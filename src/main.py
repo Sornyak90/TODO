@@ -3,9 +3,13 @@ import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import asyncio
+import os
+import json
+from dotenv import load_dotenv
 
 from web import tasks
 from auth.auth_jwt import router as auth_router
+from user_db.crud_db import router as user_db_router
 from config import settings
 from data import Base, get_session_engine
 from data.crud import add_fake_users
@@ -14,11 +18,15 @@ from data.crud import add_fake_users
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     session_maker, engine = get_session_engine()
+    load_dotenv()
+    fake_users_str = os.getenv("FAKE_USERS")
+    fake_users = json.loads(fake_users_str)
+
     # Асинхронное создание таблиц
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
         
-    await add_fake_users(session_maker)
+    await add_fake_users(session_maker, fake_users)
 
     yield
     # Закрываем соединения при завершении
@@ -36,6 +44,7 @@ app.add_middleware(
 
 app.include_router(tasks.router)  # подключаем роутер задач
 app.include_router(auth_router)
+app.include_router(user_db_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)  # запускаем приложение с автообновлением

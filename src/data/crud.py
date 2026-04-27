@@ -1,16 +1,10 @@
-import os
-import json
-from dotenv import load_dotenv
+
 from sqlalchemy import select
 
 from data.__init__ import fake_db
 
 
-async def add_fake_users(session_maker):
-    load_dotenv()
-    fake_users_str = os.getenv("FAKE_USERS")
-    fake_users = json.loads(fake_users_str)
-  
+async def add_fake_users(session_maker, fake_users):
     async with session_maker() as session:
         for user_data in fake_users.values():
             exists = await session.execute(
