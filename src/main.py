@@ -6,6 +6,7 @@ import asyncio
 import os
 import json
 from dotenv import load_dotenv
+from pathlib import Path
 
 from web import tasks
 from auth.auth_jwt import router as auth_router
@@ -17,8 +18,12 @@ from data.crud import add_fake_users
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
     session_maker, engine = get_session_engine()
-    load_dotenv()
+
+    env_path = Path('.') / '.env'
+    load_dotenv(dotenv_path=env_path)
+
     fake_users_str = os.getenv("FAKE_USERS")
     fake_users = json.loads(fake_users_str)
 

@@ -4,22 +4,21 @@ from fastapi.security import (
     HTTPBasicCredentials, 
     OAuth2PasswordRequestForm
 )
-from model.tasks import Task, TaskResponse, User, Status
+from model.tasks import Task, TaskResponse, Tasks, Status
 import data.tasks as service
 from error import Duplicate, Missing
 from typing import Annotated, Tuple
 from datetime import timedelta
-from auth.fake_db import fake_users
 from auth.auth_jwt import create_access_token, get_current_user
 
 router = APIRouter(prefix="/tasks")
 
 @router.post("/", status_code=201)
-async def create(task: Task, current_user: User = Depends(get_current_user)) -> TaskResponse | None:
+async def create(task: Task, current_user: Tasks = Depends(get_current_user)) -> TaskResponse | None:
     return await service.create(task)
     
 @router.get("/")
-async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, current_user: User = Depends(get_current_user)) -> list[TaskResponse] | None:
+async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, current_user: Tasks = Depends(get_current_user)) -> list[TaskResponse] | None:
     try:
         if int(status.value) > 2:
             raise HTTPException(
@@ -57,7 +56,7 @@ async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, curre
         raise HTTPException(status_code=422, detail=e.msg)
 
 @router.get("/{name}")
-async def get_one(name: str, current_user: User = Depends(get_current_user)) -> TaskResponse | None:
+async def get_one(name: str, current_user: Tasks = Depends(get_current_user)) -> TaskResponse | None:
     try:
         result = await service.get_one(name)
         if result is None:
@@ -67,7 +66,7 @@ async def get_one(name: str, current_user: User = Depends(get_current_user)) -> 
         raise HTTPException(status_code=404, detail=str(e))
 
 @router.patch("/")
-async def update(task: Task, current_user: User = Depends(get_current_user)) -> TaskResponse | None:
+async def update(task: Task, current_user: Tasks = Depends(get_current_user)) -> TaskResponse | None:
     try:
         return await service.update(task)
     except Missing as e:
@@ -75,7 +74,7 @@ async def update(task: Task, current_user: User = Depends(get_current_user)) -> 
 
 
 @router.delete("/{name}", status_code=204)
-async def delete(name: str, current_user: User = Depends(get_current_user)):
+async def delete(name: str, current_user: Tasks = Depends(get_current_user)):
     try:
         result = await service.delete(name)
         if result is False:

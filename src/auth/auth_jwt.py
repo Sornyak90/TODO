@@ -4,7 +4,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from config import settings
 from jose import JWTError, jwt
-from auth.fake_db import fake_users
 
 # Использование настроек
 SECRET_KEY = settings.secret_key
@@ -44,7 +43,7 @@ def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):
         user = username 
 
         if user is None:            
-            raise HTTPException(status_code=401, detail="User not found")        
+            raise HTTPException(status_code=401, detail="Tasks not found")        
         return user    
     except JWTError:        
         raise HTTPException(status_code=401, detail="Could not validate credentials")
