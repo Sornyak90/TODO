@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from config import settings
 from jose import JWTError, jwt
+from data.crud_db import get_user
 
 # Использование настроек
 SECRET_KEY = settings.secret_key
@@ -14,9 +15,11 @@ router = APIRouter(prefix="/login")
 
 @router.post("/")
 def login(data:OAuth2PasswordRequestForm = Depends()) :
-    user = fake_users.get(data.username)
+    # user = fake_users.get(data.username)
+    user = await get_user(data.username)
+    print(user)
     
-    if not user or user["password"] != data.password:
+    if not user or user.password != data.password:
         raise HTTPException(status_code=400, detail="Invalid credentials")
     else:
         return {"access_token": create_access_token(user), "token_type": "bearer"}

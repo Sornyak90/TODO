@@ -10,7 +10,7 @@ from pathlib import Path
 
 from web import tasks
 from auth.auth_jwt import router as auth_router
-from user_db.crud_db import router as user_db_router
+from data.crud_db import router as user_db_router
 from config import settings
 from data import Base, get_session_engine
 from data.crud import add_fake_users
