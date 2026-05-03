@@ -14,12 +14,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = settings.access_token_expire_minutes
 router = APIRouter(prefix="/login")
 
 @router.post("/")
-def login(data:OAuth2PasswordRequestForm = Depends()) :
-    # user = fake_users.get(data.username)
+async def login(data:OAuth2PasswordRequestForm = Depends()) :
     user = await get_user(data.username)
-    print(user)
-    
-    if not user or user.password != data.password:
+    if not user or user["password"] != data.password:
         raise HTTPException(status_code=400, detail="Invalid credentials")
     else:
         return {"access_token": create_access_token(user), "token_type": "bearer"}
@@ -40,7 +37,8 @@ def create_access_token(data: dict, expires_delta: timedelta | None = None):
 def get_current_user(token: Annotated[str, Depends(oauth2_scheme)]):    
     try:        
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("username")       
+        username: str = payload.get("username")  
+        print(username)       
         if username is None:
             raise HTTPException(status_code=401, detail="Could not validate credentials")        
         user = username 

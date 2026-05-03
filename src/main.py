@@ -10,7 +10,6 @@ from pathlib import Path
 
 from web import tasks
 from auth.auth_jwt import router as auth_router
-from data.crud_db import router as user_db_router
 from config import settings
 from data import Base, get_session_engine
 from data.crud import add_fake_users
@@ -47,9 +46,9 @@ app.add_middleware(
     allow_headers=["*"],      # разрешить все заголовки
 )
 
-app.include_router(tasks.router)  # подключаем роутер задач
+app.include_router(tasks.router_task)  # подключаем роутер задач
 app.include_router(auth_router)
-app.include_router(user_db_router)
+app.include_router(tasks.router_db)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", reload=True)  # запускаем приложение с автообновлением

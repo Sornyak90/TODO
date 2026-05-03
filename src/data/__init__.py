@@ -29,5 +29,5 @@ class Tasks(Base):
 class User(Base):
     __tablename__ = 'User'
     id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, unique=True)
+    username = Column(String, unique=True)
     password = Column(String)

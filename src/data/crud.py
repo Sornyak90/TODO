@@ -8,7 +8,7 @@ async def add_fake_users(session_maker, fake_users):
     async with session_maker() as session:
         for user_data in fake_users.values():
             exists = await session.execute(
-                select(User).where(User.name == user_data["name"])
+                select(User).where(User.username == user_data["username"])
             )
             if not exists.scalar_one_or_none():
                 session.add(User(**user_data))

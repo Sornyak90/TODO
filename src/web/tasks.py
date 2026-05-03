@@ -4,21 +4,23 @@ from fastapi.security import (
     HTTPBasicCredentials, 
     OAuth2PasswordRequestForm
 )
-from model.tasks import Task, TaskResponse, Tasks, Status
+from model.tasks import Task, TaskResponse, Users, UsersResponse, Status
 import data.tasks as service
+import data.crud_db as crud_db
 from error import Duplicate, Missing
 from typing import Annotated, Tuple
 from datetime import timedelta
 from auth.auth_jwt import create_access_token, get_current_user
 
-router = APIRouter(prefix="/tasks")
+router_task = APIRouter(prefix="/tasks")
+router_db = APIRouter(prefix="/db")
 
-@router.post("/", status_code=201)
-async def create(task: Task, current_user: Tasks = Depends(get_current_user)) -> TaskResponse | None:
+@router_task.post("/", status_code=201)
+async def create(task: Task, current_user: Users = Depends(get_current_user)) -> TaskResponse | None:
     return await service.create(task)
     
-@router.get("/")
-async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, current_user: Tasks = Depends(get_current_user)) -> list[TaskResponse] | None:
+@router_task.get("/")
+async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, current_user: Users = Depends(get_current_user)) -> list[TaskResponse] | None:
     try:
         if int(status.value) > 2:
             raise HTTPException(
@@ -55,8 +57,8 @@ async def get_all(status: Status = 0, offset: int = 0, page_size: int = 5, curre
     except Missing as e:
         raise HTTPException(status_code=422, detail=e.msg)
 
-@router.get("/{name}")
-async def get_one(name: str, current_user: Tasks = Depends(get_current_user)) -> TaskResponse | None:
+@router_task.get("/{name}")
+async def get_one(name: str, current_user: Users = Depends(get_current_user)) -> TaskResponse | None:
     try:
         result = await service.get_one(name)
         if result is None:
@@ -65,16 +67,15 @@ async def get_one(name: str, current_user: Tasks = Depends(get_current_user)) ->
     except Missing as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@router.patch("/")
-async def update(task: Task, current_user: Tasks = Depends(get_current_user)) -> TaskResponse | None:
+@router_task.patch("/")
+async def update(task: Task, current_user: Users = Depends(get_current_user)) -> TaskResponse | None:
     try:
         return await service.update(task)
     except Missing as e:
         raise HTTPException(status_code=404, detail=e.msg)
 
-
-@router.delete("/{name}", status_code=204)
-async def delete(name: str, current_user: Tasks = Depends(get_current_user)):
+@router_task.delete("/{name}", status_code=204)
+async def delete(name: str, current_user: Users = Depends(get_current_user)):
     try:
         result = await service.delete(name)
         if result is False:
@@ -82,3 +83,29 @@ async def delete(name: str, current_user: Tasks = Depends(get_current_user)):
         return result
     except Missing as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@router_db.post("/", status_code=201)
+async def create_user(user: Users) -> UsersResponse:
+    return await crud_db.create_user(user)
+
+@router_db.get("/{name}")
+async def get_user(name: str) -> dict | None:
+    return await crud_db.get_user(name)
+
+@router_db.delete("/{name}", status_code=204)
+async def delete_user(name: str, current_user: Users = Depends(get_current_user)):
+    try:
+        result = await crud_db.delete_user(name)
+        if result is False:
+            raise Missing(f"User '{name}' not found")
+        return result
+    except Missing as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@router_db.patch("/{name}")
+async def update_user(name: str, password: str, current_user: Users = Depends(get_current_user)) -> bool:
+    try:
+        return await crud_db.update_user(name, password)
+    except Missing as e:
+        raise HTTPException(status_code=404, detail=e.msg)

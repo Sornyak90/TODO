@@ -15,6 +15,9 @@ class Status(StrEnum):
 class TaskResponse(Task):
     id: int
 
-class Tasks(BaseModel):
+class Users(BaseModel):
     username: str
     password: str
+
+class UsersResponse(Users):
+    id: int
