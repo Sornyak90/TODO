@@ -4,6 +4,7 @@ class Missing(Exception):
     Attributes:
         msg (str): Сообщение об ошибке, описывающее причину возникновения исключения.
     """
+
     def __init__(self, msg: str):
         super().__init__(msg)
         self.msg = msg
@@ -15,6 +16,7 @@ class Duplicate(Exception):
     Attributes:
         msg (str): Сообщение об ошибке, описывающее причину возникновения исключения.
     """
+
     def __init__(self, msg: str):
         super().__init__(msg)
         self.msg = msg

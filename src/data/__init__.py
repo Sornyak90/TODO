@@ -1,33 +1,33 @@
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy.orm import declarative_base, Mapped, mapped_column
+from sqlalchemy import String, Identity
 from config import settings
-
 
 
 def get_session_engine():
     # Используем асинхронный движок
     engine = create_async_engine(
-        url=settings.database_url.replace('postgresql://', 'postgresql+asyncpg://'),
-        echo=False
+        url=settings.database_url.replace("postgresql://", "postgresql+asyncpg://"),
+        echo=False,
     )
     return async_sessionmaker(
-        engine,
-        class_=AsyncSession,
-        expire_on_commit=False
+        engine, class_=AsyncSession, expire_on_commit=False
     ), engine
+
 
 Base = declarative_base()
 
+
 # Модель Tasks
 class Tasks(Base):
-    __tablename__ = 'tasks'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    name = Column(String, unique=True)
-    status = Column(Boolean)
+    __tablename__ = "tasks"
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    name: Mapped[str] = mapped_column(String, unique=True)
+    status: Mapped[bool] = mapped_column()
+
 
 class User(Base):
-    __tablename__ = 'User'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String, unique=True)
-    password = Column(String)
+    __tablename__ = "User"
+    id: Mapped[int] = mapped_column(Identity(), primary_key=True)
+    username: Mapped[str] = mapped_column(String, unique=True)
+    password: Mapped[str] = mapped_column()

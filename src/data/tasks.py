@@ -1,5 +1,5 @@
 from model.tasks import Task, TaskResponse, Status
-from error import Duplicate, Missing
+from error import Missing
 from . import get_session_engine, Tasks
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy import select
@@ -34,9 +34,9 @@ async def get_all(status: Status, offset: int, page_size: int) -> list[TaskRespo
     async with AsyncSessionLocal() as session:
         q = select(Tasks)
         if status == Status.true:
-            q = q.where(Tasks.status == True)
+            q = q.where(Tasks.status == True)  # noqa
         elif status == Status.false:
-            q = q.where(Tasks.status == False)
+            q = q.where(Tasks.status == False)  # noqa
         q = q.offset(offset).limit(page_size)
         result = await session.execute(q)
         rows = result.scalars().all()
@@ -61,7 +61,7 @@ async def update(task: Task) -> TaskResponse | None:
     AsyncSessionLocal, _ = get_session_engine()
     async with AsyncSessionLocal() as session:
         result = await session.execute(select(Tasks).where(Tasks.name == task.name))
-        row = result.scalar_one_or_none()
+        row: Task | None = result.scalar_one_or_none()
         if row is None:
             raise Missing(f"Задача с именем '{task.name}' не найдена")
         row.status = task.status

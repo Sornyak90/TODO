@@ -1,4 +1,3 @@
-
 from sqlalchemy import select
 
 from data.__init__ import User

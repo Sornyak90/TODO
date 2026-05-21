@@ -5,9 +5,9 @@ from typing import Dict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
-    
+
     # Database
-    database_url: str 
+    database_url: str
 
     # Auth
     secret_key: str
@@ -16,4 +16,5 @@ class Settings(BaseSettings):
 
     fake_users: Dict[str, Dict[str, str]] = Field(default_factory=dict)
 
-settings = Settings()
+
+settings = Settings()  # type: ignore
