@@ -1,12 +1,12 @@
 from tests.conftest import *
 
-async def test_login_success(client):
+async def test_login_success(client, test_user_in_db):
     """Тест успешной аутентификации"""
     response = await client.post("/login/", data={
         "username": TEST_USER,
         "password": TEST_PASSWORD
     })
-    
+
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -17,7 +17,7 @@ async def test_login_success(client):
     payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     assert payload.get("username") == TEST_USER
 
-async def test_login_invalid_username(client):
+async def test_login_invalid_username(client,test_user_in_db):
     """Тест аутентификации с неверным именем пользователя"""
     response = await client.post("/login/", data={
         "username": INVALID_USER,
@@ -25,7 +25,7 @@ async def test_login_invalid_username(client):
     })
     assert response.status_code == 400
 
-async def test_login_invalid_password(client):
+async def test_login_invalid_password(client, test_user_in_db):
     """Тест аутентификации с неверным паролем"""
     response = await client.post("/login/", data={
         "username": TEST_USER,
@@ -35,7 +35,7 @@ async def test_login_invalid_password(client):
     assert response.status_code == 400
     assert "Invalid credentials" in response.text
     
-async def test_login_empty_credentials(client):
+async def test_login_empty_credentials(client,test_user_in_db):
     """Тест аутентификации с пустыми данными"""
     response = await client.post("/login/", data={
         "username": "",
@@ -45,7 +45,7 @@ async def test_login_empty_credentials(client):
     assert response.status_code == 400
     assert "Invalid credentials" in response.text
 
-async def test_token_expiration(auth_token):
+async def test_token_expiration(test_user_in_db, auth_token):
 
     """Тест срока действия токена"""
     payload = jwt.decode(auth_token, SECRET_KEY, algorithms=[ALGORITHM])

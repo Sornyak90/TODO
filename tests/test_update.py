@@ -1,7 +1,7 @@
 from tests.conftest import *
 import uuid
 
-async def test_patch_existing_task_success(client, headers):
+async def test_patch_existing_task_success(client, test_user_in_db, headers):
     """Успешное обновление существующей задачи (PATCH)"""
     unique_id = str(uuid.uuid4())[:8]
     task_name = f"Task_To_Update_{unique_id}"
@@ -55,7 +55,7 @@ async def test_patch_existing_task_success(client, headers):
     assert delete_response.status_code == 204
 
 
-async def test_patch_nonexistent_task(client, headers):
+async def test_patch_nonexistent_task(client, test_user_in_db, headers):
     """Попытка обновить несуществующую задачу -> 404"""
     update_data = {
         "name": "NonExistentTask_12345",  # Имя несуществующей задачи
@@ -70,7 +70,7 @@ async def test_patch_nonexistent_task(client, headers):
 
     assert patch_response.status_code == 404  # Задача не найдена
 
-async def test_patch_already_deleted_task(client, headers):
+async def test_patch_already_deleted_task(client, test_user_in_db, headers):
     """Попытка обновить уже удаленную задачу -> 404"""
     unique_id = str(uuid.uuid4())[:8]
     task_name = f"Task_To_Update_{unique_id}"

@@ -3,7 +3,7 @@ import json
 import uuid
 
 
-async def test_get_existing_task(client, headers):
+async def test_get_existing_task(client, test_user_in_db, headers):
     """Тест успешного получения существующей задачи"""
     
     unique_id = str(uuid.uuid4())[:8]
@@ -43,7 +43,7 @@ async def test_get_existing_task(client, headers):
     # Проверка статуса (False = завершена)
     assert task["status"] == False
 
-async def test_get_nonexistent_task(client, headers):
+async def test_get_nonexistent_task(client, test_user_in_db, headers):
     """Тест получения несуществующей задачи -> 404"""
     
     non_existent_name = "NonExistentTask_12345"  # Заведомо несуществующее имя

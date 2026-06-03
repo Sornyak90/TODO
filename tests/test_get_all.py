@@ -1,7 +1,7 @@
 from tests.conftest import *  # Импорт тестовых данных и токенов из модуля
 import uuid
 
-async def test_pagination(client, headers, pagination_params):
+async def test_pagination(client, test_user_in_db, headers, pagination_params):
     """Тест пагинации (offset и page_size) для списка задач"""
    
     # Создаем 10 тестовых задач
@@ -73,7 +73,7 @@ async def test_pagination(client, headers, pagination_params):
     )
     assert response.status_code == 422 
     
-async def test_filter(client, headers, pagination_params):
+async def test_filter(client, test_user_in_db, headers, pagination_params):
     """Тест фильтрации задач по статусу (status параметр)"""
    
     # Создаем 10 тестовых задач (все со статусом False)

@@ -11,4 +11,4 @@ run: lint
 	uv run python src/main.py
 
 test:
-	uv run pytest
+	uv run pytest -sv

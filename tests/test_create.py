@@ -1,7 +1,7 @@
 from tests.conftest import *  
 import uuid
 
-async def test_create_successful(client, headers):
+async def test_create_successful(client, test_user_in_db, headers):
     """Тест успешного создания задачи (201 Created)"""
     unique_id = str(uuid.uuid4())[:8]
     task_name = f"Task_Create_{unique_id}"  # Уникальное имя задачи
@@ -22,7 +22,7 @@ async def test_create_successful(client, headers):
     assert response.json()["status"] == task_data["status"]
 
 
-async def test_input_data_validation(client, headers):
+async def test_input_data_validation(client, test_user_in_db, headers):
     """Тест валидации входных данных (422)"""
     
     # Тест 1: Пустые значения name и status -> 422
@@ -41,7 +41,7 @@ async def test_input_data_validation(client, headers):
     )
     assert response.status_code == 422  
 
-async def test_business_logic(client, headers):
+async def test_business_logic(client, test_user_in_db, headers):
     """Тест бизнес-логики: создание дубликата задачи -> 409 Conflict"""
     
     unique_id = str(uuid.uuid4())[:8]

@@ -2,7 +2,7 @@ from tests.conftest import *
 import json
 import uuid
 
-async def test_delete_existing_task_success(client, headers):
+async def test_delete_existing_task_success(client, test_user_in_db, headers):
     # Успешное удаление существующей задачи
     
     unique_id = str(uuid.uuid4())[:8]
@@ -37,7 +37,7 @@ async def test_delete_existing_task_success(client, headers):
     )
     assert get_response.status_code == 404  
     
-async def test_delete_nonexistent_task(client, headers):
+async def test_delete_nonexistent_task(client, test_user_in_db, headers):
     # Удаление несуществующей задачи -> 404 Not Found
     
     non_existent_name = "NonExistent_Task_12345"
@@ -48,7 +48,7 @@ async def test_delete_nonexistent_task(client, headers):
     )
     assert delete_response.status_code == 404 
 
-async def test_delete_already_deleted_task(client, headers):
+async def test_delete_already_deleted_task(client, test_user_in_db, headers):
     # Повторное удаление уже удаленной задачи -> 404 Not Found
     
     unique_id = str(uuid.uuid4())[:8]

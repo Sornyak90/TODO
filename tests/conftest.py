@@ -7,6 +7,8 @@ import string
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from config import settings
 from datetime import datetime, timedelta, timezone
+# from src.data.crud_db import create_user, delete_user, get_user
+from src.model.tasks import Users 
 import jwt
 
 # Использование настроек
@@ -53,9 +55,18 @@ async def app(pg_container):
 
 @pytest.fixture
 async def client(app):
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        yield ac
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+        yield client
 
+@pytest.fixture
+async def test_user_in_db(app, client: AsyncClient):
+    # Создаем пользователя
+    user = await client.post("/db/",json={
+        "username": TEST_USER,
+        "password": TEST_PASSWORD
+    })
+    yield user
+    
 @pytest.fixture
 async def auth_token(client):
     response = await client.post("/login/", data={"username": TEST_USER,  "password": TEST_PASSWORD})

@@ -1,7 +1,7 @@
 from tests.conftest import *  
 import uuid
 
-async def test_creat_unauthorized(client, headers_expired_token, headers_invlid):
+async def test_creat_unauthorized(client, test_user_in_db, headers_expired_token, headers_invlid):
     """Тест ошибок авторизации при создании задачи (401)"""
    
     # Сценарий 1: Запрос без токена -> 401
@@ -27,7 +27,7 @@ async def test_creat_unauthorized(client, headers_expired_token, headers_invlid)
     )
     assert response.status_code == 401  
 
-async def test_delete_unauthorized(client, headers_expired_token, headers_invlid):
+async def test_delete_unauthorized(client, test_user_in_db, headers_expired_token, headers_invlid):
     # Проверка удаления без авторизации или с неверным токеном
     
     # Попытка удаления без токена -> 401 Unauthorized
@@ -48,7 +48,7 @@ async def test_delete_unauthorized(client, headers_expired_token, headers_invlid
     )
     assert delete_response.status_code == 401 
 
-async def test_getall_unauthorized(client, headers_expired_token, headers_invlid,pagination_params):
+async def test_getall_unauthorized(client, test_user_in_db, headers_expired_token, headers_invlid,pagination_params):
     # Сценарий 2: Запрос без токена -> 401 Unauthorized
     response = await client.get(
             "/tasks/", 
@@ -72,7 +72,7 @@ async def test_getall_unauthorized(client, headers_expired_token, headers_invlid
         )
     assert response.status_code == 401 
 
-async def test_getone_unauthorized(client, headers_expired_token, headers_invlid):
+async def test_getone_unauthorized(client, test_user_in_db, headers_expired_token, headers_invlid):
     """Тест доступа к задаче без авторизации -> 401"""
     
     # Сценарий 1: GET запрос без токена
@@ -93,7 +93,7 @@ async def test_getone_unauthorized(client, headers_expired_token, headers_invlid
     )
     assert response.status_code == 401  # Не авторизован
 
-async def test_patch_unauthorized(client, headers_expired_token, headers_invlid):
+async def test_patch_unauthorized(client, test_user_in_db, headers_expired_token, headers_invlid):
     """Ошибки авторизации при обновлении (без токена / неверный токен)"""
     
     # Попытка обновления без токена -> 401
