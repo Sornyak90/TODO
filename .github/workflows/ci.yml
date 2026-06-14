@@ -61,8 +61,7 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          mkdir -p /opt/fastapi-app
-          cd /opt/fastapi-app
+          cd /opt/fastapi-app/TODO
           git pull origin main
           
           # Pull latest changes and rebuild
