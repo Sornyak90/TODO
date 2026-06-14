@@ -62,7 +62,7 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /opt/fastapi-app/TODO
-          git pull origin main
+          docker pull 11ghz/todo:dea105da8221
           
           # Pull latest changes and rebuild
           docker-compose down
