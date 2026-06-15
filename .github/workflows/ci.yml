@@ -61,7 +61,7 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
-          cd /opt/fastapi-app/TODO
+          cd /opt/fastapi/TODO
           docker pull 11ghz/todo:dea105da8221
           
           # Pull latest changes and rebuild
