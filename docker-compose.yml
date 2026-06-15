@@ -10,6 +10,7 @@ services:
     depends_on:
       - db
     restart: unless-stopped
+    mem_limit: 256m
 
   db:
     image: postgres:17
