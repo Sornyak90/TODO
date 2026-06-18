@@ -56,6 +56,7 @@ jobs:
     - name: Push image
       uses: docker/build-push-action@v5
       script: |
+        cd /opt/fastapi/TODO
         docker build -t 11ghz/todo:dea105da8221 .
     
   deploy-with-compose:
