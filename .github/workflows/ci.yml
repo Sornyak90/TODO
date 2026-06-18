@@ -49,20 +49,10 @@ jobs:
     
     - name: Run tests
       run: make test
-  push_image:
-    runs-on: ubuntu-latest
-    needs: [lint, test]
-    steps: 
-    - name: Push image
-      uses: docker/build-push-action@v6
-      with:
-        context: .
-        push: true
-        tags: 11ghz/todo:dea105da8221
     
   deploy-with-compose:
     runs-on: ubuntu-latest
-    needs: [push_image]
+    needs: [lint, test]
     steps:
     - name: Deploy with docker-compose
       uses: appleboy/ssh-action@v1.0.3
@@ -72,9 +62,12 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           cd /opt/fastapi/TODO
-          docker pull 11ghz/todo:dea105da8221
           
-          # Pull latest changes and rebuild
+          # Build new image
+          docker build -t 11ghz/todo:dea105da8221 .
+          
+          # Pull and deploy new image
+          docker pull 11ghz/todo:dea105da8221
           docker-compose down
           docker-compose up -d
           
