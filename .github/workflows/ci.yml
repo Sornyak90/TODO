@@ -64,11 +64,11 @@ jobs:
           cd /opt/fastapi/TODO
           
           # Build new image
-          docker build -t 11ghz/todo:dea105da8221 .
-          docker push 11ghz/todo:dea105da8221
+          docker build -t 11ghz/todo:dea105da8223 .
+          docker push 11ghz/todo:dea105da8223
           
           # Pull and deploy new image
-          docker pull 11ghz/todo:dea105da8221
+          docker pull 11ghz/todo:dea105da8223
           docker-compose down
           docker-compose up -d
           
