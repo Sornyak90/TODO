@@ -55,9 +55,10 @@ jobs:
     steps: 
     - name: Push image
       uses: appleboy/ssh-action@v1.0.3
-      script: |
-        cd /opt/fastapi/TODO
-        docker build -t 11ghz/todo:dea105da8221 .
+      with:
+        script: |
+          cd /opt/fastapi/TODO
+          docker build -t 11ghz/todo:dea105da8221 .
     
   deploy-with-compose:
     runs-on: ubuntu-latest
