@@ -1,12 +1,21 @@
 from fastapi import APIRouter, HTTPException, Depends
+from fastapi.responses import FileResponse
 from model.tasks import Task, TaskResponse, Users, UsersResponse, Status
 import data.tasks as service
 import data.crud_db as crud_db
 from error import Missing
 from auth.auth_jwt import get_current_user
 
+
 router_task = APIRouter(prefix="/tasks")
 router_db = APIRouter(prefix="/db")
+router_index = APIRouter(prefix="/index.html")
+
+
+# Опционально: если хотите, чтобы и /index.html работало
+@router_index.get("/")
+async def read_index_html():
+    return FileResponse("index.html")
 
 
 @router_task.post("/", status_code=201)

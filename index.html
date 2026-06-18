@@ -37,8 +37,8 @@
             width: 48%;
         }
         #loginSection {
-            max-width: 400px;
-            margin: 100px auto;
+            max-width: 450px;
+            margin: 50px auto;
         }
         #mainContent {
             display: none;
@@ -72,29 +72,70 @@
             font-size: 0.9rem;
             color: #6c757d;
         }
+        .nav-tabs .nav-link {
+            cursor: pointer;
+        }
+        .tab-content {
+            padding-top: 20px;
+        }
     </style>
 </head>
 <body>
 <!-- Секция аутентификации -->
 <div id="loginSection" class="section">
-    <h3 class="text-center mb-4">Вход в Task Manager</h3>
-    <form id="loginForm">
-        <div class="mb-3">
-            <label for="username" class="form-label">Имя пользователя</label>
-            <input type="text" class="form-control" id="username" placeholder="Введите имя пользователя" required>
+    <h3 class="text-center mb-4">Task Manager</h3>
+    
+    <ul class="nav nav-tabs" id="authTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab">Вход</button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="register-tab" data-bs-toggle="tab" data-bs-target="#register" type="button" role="tab">Регистрация</button>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="authTabsContent">
+        <!-- Вкладка входа -->
+        <div class="tab-pane fade show active" id="login" role="tabpanel">
+            <form id="loginForm" class="mt-3">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Имя пользователя</label>
+                    <input type="text" class="form-control" id="loginUsername" placeholder="Введите имя пользователя" required>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Пароль</label>
+                    <input type="password" class="form-control" id="loginPassword" placeholder="Введите пароль" required>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Войти</button>
+            </form>
         </div>
-        <div class="mb-3">
-            <label for="password" class="form-label">Пароль</label>
-            <input type="password" class="form-control" id="password" placeholder="Введите пароль" required>
+        
+        <!-- Вкладка регистрации -->
+        <div class="tab-pane fade" id="register" role="tabpanel">
+            <form id="registerForm" class="mt-3">
+                <div class="mb-3">
+                    <label for="registerUsername" class="form-label">Имя пользователя</label>
+                    <input type="text" class="form-control" id="registerUsername" placeholder="Придумайте имя пользователя" required>
+                </div>
+                <div class="mb-3">
+                    <label for="registerPassword" class="form-label">Пароль</label>
+                    <input type="password" class="form-control" id="registerPassword" placeholder="Придумайте пароль" required>
+                </div>
+                <div class="mb-3">
+                    <label for="registerConfirmPassword" class="form-label">Подтверждение пароля</label>
+                    <input type="password" class="form-control" id="registerConfirmPassword" placeholder="Подтвердите пароль" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100">Зарегистрироваться</button>
+            </form>
         </div>
-        <button type="submit" class="btn btn-primary w-100">Войти</button>
-    </form>
-    <div id="loginMessage" class="mt-3" style="display: none;"></div>
+    </div>
+    
+    <div id="authMessage" class="mt-3" style="display: none;"></div>
 </div>
 
 <!-- Основной контент (скрыт до аутентификации) -->
 <div id="mainContent">
-    <div class="container">
+    <div class="container position-relative">
         <button class="btn btn-outline-secondary logout-btn" id="logoutBtn">Выйти</button>
         <h1 class="text-center mb-4">Task Manager</h1>
         
@@ -199,6 +240,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
 // Базовый URL API
 const API_BASE_URL = 'http://localhost:8000'; // Замените на ваш URL API
@@ -215,6 +257,30 @@ let currentPage = 1; // Текущая страница
 let totalTasks = 0; // Общее количество задач
 let totalPages = 1; // Общее количество страниц
 
+// Функция для регистрации
+async function register(username, password) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/db/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+        });
+        
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка регистрации');
+        }
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Ошибка регистрации:', error);
+        throw error;
+    }
+}
+
 // Функция для аутентификации
 async function login(username, password) {
     try {
@@ -223,7 +289,7 @@ async function login(username, password) {
         formData.append('username', username);
         formData.append('password', password);
 
-        const response = await fetch(`${API_BASE_URL}/login`, {
+        const response = await fetch(`${API_BASE_URL}/login/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -262,8 +328,12 @@ function checkAuth() {
 function showLoginSection() {
     document.getElementById('loginSection').style.display = 'block';
     document.getElementById('mainContent').style.display = 'none';
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
+    document.getElementById('loginUsername').value = '';
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('registerUsername').value = '';
+    document.getElementById('registerPassword').value = '';
+    document.getElementById('registerConfirmPassword').value = '';
+    document.getElementById('authMessage').style.display = 'none';
 }
 
 // Функция для показа основного контента
@@ -280,28 +350,30 @@ function showMainContent() {
     getTasksWithPagination(currentFilter, currentPage);
 }
 
-// Функция для получения задач с пагинацией (использует новый эндпоинт)
+// Функция для получения задач с пагинацией
 async function getTasksWithPagination(filterValue, page = 1) {
     if (!checkAuth()) return;
     
     try {
-        console.log(`Запрашиваем задачи с фильтром: filtr=${filterValue}, страница=${page}`);
+        const offset = (page - 1) * ITEMS_PER_PAGE;
+        let url = `${API_BASE_URL}/tasks/?status=${filterValue}&offset=${offset}&page_size=${ITEMS_PER_PAGE}`;
         
-        // Используем новый эндпоинт /{page}
-        const response = await authFetch(`${API_BASE_URL}/tasks/${page}?filtr=${filterValue}`);
+        console.log(`Запрашиваем задачи: ${url}`);
+        
+        const response = await authFetch(url);
         if (!response.ok) {
             throw new Error('Ошибка при получении задач');
         }
         
-        const data = await response.json();
+        const tasks = await response.json();
         
-        // Предполагаем, что API возвращает массив [tasks, totalPages]
-        const tasks = data[0]; // список задач для текущей страницы
-        totalPages = data[1]; // общее количество страниц
-        totalTasks = tasks.length * totalPages; // примерное общее количество задач
+        // Получаем общее количество задач (через отдельный запрос или из заголовков)
+        // Для простоты будем считать приблизительно
+        totalTasks = tasks.length > 0 ? (page * ITEMS_PER_PAGE + 10) : 0;
+        totalPages = Math.ceil(totalTasks / ITEMS_PER_PAGE);
         
         // Если запрошенная страница больше общего количества страниц, сбрасываем на первую
-        if (page > totalPages) {
+        if (page > totalPages && totalPages > 0) {
             page = 1;
             currentPage = 1;
         }
@@ -436,7 +508,7 @@ function updatePagination(filterValue, currentPage) {
 // Функция для обновления заголовка списка задач
 function updateTasksHeader(filterValue) {
     const header = document.getElementById('tasksHeader');
-    switch(filterValue) {
+    switch(parseInt(filterValue)) {
         case 0:
             header.textContent = 'Список задач (Все)';
             break;
@@ -462,9 +534,9 @@ function displayTasks(tasks) {
     
     let html = `
         <div class="task-header row">
-            <div class="col-md-4"><strong>ID</strong></div>
-            <div class="col-md-4"><strong>Имя задачи</strong></div>
-            <div class="col-md-4"><strong>Статус</strong></div>
+            <div class="col-2"><strong>ID</strong></div>
+            <div class="col-6"><strong>Имя задачи</strong></div>
+            <div class="col-4"><strong>Статус</strong></div>
         </div>
     `;
     
@@ -472,13 +544,13 @@ function displayTasks(tasks) {
         html += `
             <div class="task-item">
                 <div class="row align-items-center">
-                    <div class="col-md-4">
+                    <div class="col-2">
                         ${task.id || 'N/A'}
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-6">
                         ${task.name}
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-4">
                         <span class="${task.status ? 'status-true' : 'status-false'}">
                             <strong>${task.status ? '✓ Выполнено' : '✗ Не выполнено'}</strong>
                         </span>
@@ -516,7 +588,7 @@ async function authFetch(url, options = {}) {
     
     if (response.status === 401) {
         logout();
-        showMessage('warning', 'Сессия истекла. Пожалуйста, войдите снова.');
+        showAuthMessage('warning', 'Сессия истекла. Пожалуйста, войдите снова.');
         throw new Error('Unauthorized');
     }
     
@@ -575,7 +647,8 @@ async function setStatusTrue() {
         });
         
         if (!response.ok) {
-            throw new Error('Ошибка при изменении статуса задачи');
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка при изменении статуса задачи');
         }
         
         document.getElementById('updateTaskName').value = '';
@@ -609,7 +682,8 @@ async function setStatusFalse() {
         });
         
         if (!response.ok) {
-            throw new Error('Ошибка при изменении статуса задачи');
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка при изменении статуса задачи');
         }
         
         document.getElementById('updateTaskName').value = '';
@@ -640,22 +714,17 @@ async function deleteTask() {
             method: 'DELETE',
         });
         
-        if (!response.ok) {
-            throw new Error('Ошибка при удалении задачи');
+        if (!response.ok && response.status !== 204) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || 'Ошибка при удалении задачи');
         }
-
-        const result = await response.json();
         
-        if (result) {
-            document.getElementById('deleteTaskName').value = '';
-            
-            // Обновляем список с текущим фильтром и проверяем текущую страницу
-            getTasksWithPagination(currentFilter, currentPage);
-            
-            showMessage('success', 'Задача успешно удалена!');
-        } else {
-            showMessage('info', 'Задача не найдена');
-        }
+        document.getElementById('deleteTaskName').value = '';
+        
+        // Обновляем список с текущим фильтром и проверяем текущую страницу
+        getTasksWithPagination(currentFilter, currentPage);
+        
+        showMessage('success', 'Задача успешно удалена!');
     } catch (error) {
         console.error('Ошибка:', error);
         if (error.message !== 'Unauthorized') {
@@ -674,8 +743,15 @@ async function searchTask() {
     }
     
     try {
-        const response = await authFetch(`${API_BASE_URL}/tasks/search/${name}`);
+        const response = await authFetch(`${API_BASE_URL}/tasks/${name}`);
         if (!response.ok) {
+            if (response.status === 404) {
+                const searchResult = document.getElementById('searchResult');
+                const searchResultContent = document.getElementById('searchResultContent');
+                searchResultContent.innerHTML = '<div class="text-muted">Задача не найдена</div>';
+                searchResult.style.display = 'block';
+                return;
+            }
             throw new Error('Ошибка при поиске задачи');
         }
         
@@ -716,6 +792,7 @@ function showMessage(type, message) {
     const alertDiv = document.createElement('div');
     alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
     alertDiv.style.zIndex = '1050';
+    alertDiv.style.maxWidth = '500px';
     alertDiv.innerHTML = `
         ${message}
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
@@ -728,6 +805,13 @@ function showMessage(type, message) {
             alertDiv.parentNode.removeChild(alertDiv);
         }
     }, 5000);
+}
+
+// Показываем сообщение в секции аутентификации
+function showAuthMessage(type, message) {
+    const authMessage = document.getElementById('authMessage');
+    authMessage.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+    authMessage.style.display = 'block';
 }
 
 // Инициализация при загрузке страницы
@@ -743,19 +827,16 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('loginForm').addEventListener('submit', async function (e) {
         e.preventDefault();
         
-        const username = document.getElementById('username').value.trim();
-        const password = document.getElementById('password').value;
-        const loginMessage = document.getElementById('loginMessage');
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value;
         
         if (!username || !password) {
-            loginMessage.innerHTML = '<div class="alert alert-warning">Пожалуйста, заполните все поля</div>';
-            loginMessage.style.display = 'block';
+            showAuthMessage('warning', 'Пожалуйста, заполните все поля');
             return;
         }
         
         try {
-            loginMessage.innerHTML = '<div class="alert alert-info">Вход в систему...</div>';
-            loginMessage.style.display = 'block';
+            showAuthMessage('info', 'Вход в систему...');
             
             const result = await login(username, password);
             
@@ -770,8 +851,63 @@ document.addEventListener('DOMContentLoaded', function () {
             
         } catch (error) {
             console.error('Ошибка входа:', error);
-            loginMessage.innerHTML = `<div class="alert alert-danger">Ошибка входа: ${error.message}</div>`;
-            loginMessage.style.display = 'block';
+            showAuthMessage('danger', `Ошибка входа: ${error.message}`);
+        }
+    });
+    
+    // Обработчик формы регистрации
+    document.getElementById('registerForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('registerUsername').value.trim();
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        
+        if (!username || !password || !confirmPassword) {
+            showAuthMessage('warning', 'Пожалуйста, заполните все поля');
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showAuthMessage('warning', 'Пароли не совпадают');
+            return;
+        }
+        
+        if (password.length < 3) {
+            showAuthMessage('warning', 'Пароль должен содержать минимум 3 символа');
+            return;
+        }
+        
+        try {
+            showAuthMessage('info', 'Регистрация...');
+            
+            const result = await register(username, password);
+            
+            showAuthMessage('success', `Пользователь "${username}" успешно зарегистрирован! Теперь войдите в систему.`);
+            
+            // Очищаем форму регистрации
+            document.getElementById('registerUsername').value = '';
+            document.getElementById('registerPassword').value = '';
+            document.getElementById('registerConfirmPassword').value = '';
+            
+            // Переключаемся на вкладку входа
+            const loginTab = document.getElementById('login-tab');
+            const registerTab = document.getElementById('register-tab');
+            const loginPane = document.getElementById('login');
+            const registerPane = document.getElementById('register');
+            
+            registerTab.classList.remove('active');
+            loginTab.classList.add('active');
+            registerPane.classList.remove('active', 'show');
+            loginPane.classList.add('active', 'show');
+            
+            // Заполняем поле имени пользователя
+            document.getElementById('loginUsername').value = username;
+            document.getElementById('loginPassword').focus();
+            
+        } catch (error) {
+            console.error('Ошибка регистрации:', error);
+            showAuthMessage('danger', `Ошибка регистрации: ${error.message}`);
         }
     });
     
@@ -826,10 +962,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     
-    // Также добавляем обработчики Enter для формы логина
-    document.getElementById('password').addEventListener('keypress', function (e) {
+    // Также добавляем обработчики Enter для форм
+    document.getElementById('loginPassword').addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+        }
+    });
+    
+    document.getElementById('registerConfirmPassword').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            document.getElementById('registerForm').dispatchEvent(new Event('submit'));
         }
     });
 });

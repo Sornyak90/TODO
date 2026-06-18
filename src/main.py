@@ -48,6 +48,8 @@ app.add_middleware(
     allow_headers=["*"],  # разрешить все заголовки
 )
 
+
+app.include_router(tasks.router_index)
 app.include_router(tasks.router_task)  # подключаем роутер задач
 app.include_router(auth_router)
 app.include_router(tasks.router_db)
