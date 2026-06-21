@@ -63,15 +63,14 @@ jobs:
         script: |
           cd /opt/fastapi/TODO
           
-          # # Build new image
-          # docker build -t 11ghz/todo:dea105da8223 .
-          # docker push 11ghz/todo:dea105da8223
-          # docker rmi -f $(docker images -q)
+          # Build new image
+          docker build -t 11ghz/todo:1.0.0 .
+          docker push 11ghz/todo:1.0.0
+          docker rmi -f $(docker images -q)
           
           # Pull and deploy new image
-          # docker pull 11ghz/todo:dea105da8223
+          docker pull 11ghz/todo:1.0.0
           docker-compose down
-          docker rmi -f $(docker images -q)
           docker-compose up -d
           
           # Clean up old images
