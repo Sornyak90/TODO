@@ -69,7 +69,7 @@ jobs:
           # docker rmi -f $(docker images -q)
           
           # Pull and deploy new image
-          docker pull 11ghz/todo:dea105da8223
+          # docker pull 11ghz/todo:dea105da8223
           docker-compose down
           docker rmi -f $(docker images -q)
           docker-compose up -d
