@@ -49,10 +49,19 @@ jobs:
     
     - name: Run tests
       run: make test
-    
-  deploy-with-compose:
+  
+  build_push:
     runs-on: ubuntu-latest
     needs: [lint, test]
+    steps:
+    - name: Build and push image
+      uses: docker/build-push-action@v5
+      with:
+
+
+  deploy-with-compose:
+    runs-on: ubuntu-latest
+    needs: [build_push]
     steps:
     - name: Deploy with docker-compose
       uses: appleboy/ssh-action@v1.0.3
