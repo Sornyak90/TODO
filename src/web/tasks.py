@@ -12,8 +12,7 @@ router_db = APIRouter(prefix="/db")
 router_index = APIRouter(prefix="/index.html")
 
 
-# Опционально: если хотите, чтобы и /index.html работало
-@router_index.get("/")
+@router_index.get("")
 async def read_index_html():
     return FileResponse("index.html")
 
