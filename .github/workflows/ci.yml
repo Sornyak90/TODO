@@ -91,7 +91,7 @@ jobs:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
-        source: "docker-compose.yml,index.html"
+        source: "${{ github.workspace }}/docker-compose.yml,${{ github.workspace }}/index.html"
         target: "/opt/fastapi/TODO/"
         debug: true
         
