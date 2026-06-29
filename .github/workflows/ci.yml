@@ -96,8 +96,6 @@ jobs:
           
           # Pull and deploy new image
           docker pull 11ghz/todo:latest
-          # # 👇 Удалить том с данными PostgreSQL ????
-          # docker volume ls -q | grep postgres_data | xargs -r docker volume rm
           docker-compose down
           docker-compose up -d
           
