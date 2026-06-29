@@ -8,6 +8,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --compile-bytecode --no-cache --no-dev
 
 COPY src/ ./
+COPY index.html ./
 
 EXPOSE 8000
 
